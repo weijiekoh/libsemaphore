@@ -135,6 +135,44 @@ values.
 Generates an identity commitment, which is the hash of the public key, the
 identity nullifier, and the identity trapdoor.
 
+**`genProof(witness: SnarkWitness, provingKey: SnarkProvingKey): SnarkProof`**
+
+Generates a `SnarkProof`, which can be sent to the Semaphore contract's
+`broadcastSignal()` function, or the Mixer's `mix()` or `mixERC20` functions.
+It can also be verified off-chain using `verifyProof()` below.
+
+**`genPublicSignals(witness: SnarkWitness, circuit: SnarkCircuit): SnarkPublicSignals`**
+
+Extracts the public signals to be supplied to the contract or `verifyProof()`.
+
+**`verifyProof(verifyingKey: SnarkVerifyingKey, proof: SnarkProof, publicSignals: SnarkPublicSignals): boolean`**
+
+Returns `true` if the given `proof` is valid, given the correct verifying key
+and public signals.
+
+Returns `false` otherwise.
+
+**`signMsg(privKey: EddsaPrivateKey, msg: snarkjs.bigInt): EdDSAMiMcSpongeSignature)`**
+
+Encapsualtes `circomlib.eddsa.signMiMCSponge` to sign a message `msg` using private key `privKey`.
+
+**`verifySignature(msg: snarkjs.bigInt, signature: EdDSAMiMcSpongeSignature, pubKey: EddsaPublicKey)`: boolean**
+
+Returns `true` if the cryptographic `signature` of the signed `msg` is from the
+private key associated with `pubKey`.
+
+Returns `false` otherwise.
+
+**`setupTree(prefix: string): MerkleTree`**
+
+Returns a Merkle tree created using
+[`semaphore-merkle-tree`](https://www.npmjs.com/package/semaphore-merkle-tree)
+with the same number of levels which the Semaphore zk-SNARK circuit expects.
+This tree is also configured to use `MimcSpongeHasher`, which is also what the
+circuit expects.
+
+### Mixer-specific functions 
+
 **`async genMixerWitness(...): SnarkWitness`**
 
 This function has the following signature:
@@ -170,22 +208,6 @@ Only `witness` is essential to generate the proof; the other data is only
 useful for debugging and additional off-chain checks, such as verifying the
 signature and the Merkle tree root.
 
-**`genProof(witness: SnarkWitness, provingKey: SnarkProvingKey): SnarkProof`**
-
-Generates a `SnarkProof`, which can be sent to the Semaphore contract's
-`broadcastSignal()` function, or the Mixer's `mix()` or `mixERC20` functions.
-It can also be verified off-chain using `verifyProof()` below.
-
-**`genPublicSignals(witness: SnarkWitness, circuit: SnarkCircuit): SnarkPublicSignals`**
-
-Extracts the public signals to be supplied to the contract or `verifyProof()`.
-
-**`verifyProof(verifyingKey: SnarkVerifyingKey, proof: SnarkProof, publicSignals: SnarkPublicSignals): boolean`**
-
-Returns true if the given `proof` is valid, given the correct verifying key and
-public signals.
-
-Returns false otherwise.
 
 ### Mixer enumeration
 

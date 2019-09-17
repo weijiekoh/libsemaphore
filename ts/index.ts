@@ -96,7 +96,7 @@ const genIdentityCommitment = (
     ])
 }
 
-const genMsg = (
+const genMixerMsg = (
     externalNullifier: string,
     signalHash: snarkjs.bigInt,
 ): snarkjs.bigInt => {
@@ -120,7 +120,7 @@ const genSignedMsg = (
     externalNullifier: string,
     signalHash: snarkjs.bigInt,
 ) => {
-    const msg = genMsg(externalNullifier, signalHash)
+    const msg = genMixerMsg(externalNullifier, signalHash)
 
     return {
         msg,
@@ -270,10 +270,12 @@ const verifyProof = (
 
 // "export = {" ????
 export {
+    setupTree,
     genPubKey,
     genIdentity,
     genMixerWitness,
     genProof,
     genPublicSignals,
     verifyProof,
+    verifySignature,
 }

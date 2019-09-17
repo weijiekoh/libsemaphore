@@ -115,14 +115,13 @@ interface SnarkProof {
 }
 ```
 
+### Functions
+
 **`genPubKey(privKey: EddsaPrivateKey): EddsaPublicKey`**
 
 Generates a public EdDSA key from a supplied private key. To generate a private
 key, use `crypto.randomBytes(32)` where `crypto` is the built-in Node or
 browser module.
-
-
-### Functions
 
 **`genIdentity(): Identity`**
 

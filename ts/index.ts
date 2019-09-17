@@ -278,4 +278,6 @@ export {
     genPublicSignals,
     verifyProof,
     verifySignature,
+    signMsg,
+    genIdentityCommitment,
 }

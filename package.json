@@ -29,6 +29,7 @@
     "circomlib": "0.0.13",
     "ethers": "^4.0.37",
     "semaphore-merkle-tree": "^1.0.6",
+    "websnark": "0.0.5",
     "snarkjs": "0.1.17"
   }
 }

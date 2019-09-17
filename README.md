@@ -6,7 +6,7 @@ mixer built upon Semaphore.
 
 ## System design
 
-We refer below to any third-party app, like a wallet user interface, as a
+We refer below to any third-party app, like a mixer user interface, as a
 *client*.
 
 To use the mixer, each client must be able to:
@@ -207,28 +207,3 @@ It returns an object as such:
 Only `witness` is essential to generate the proof; the other data is only
 useful for debugging and additional off-chain checks, such as verifying the
 signature and the Merkle tree root.
-
-
-### Mixer enumeration
-
-Each Mixer contract handles a constant amount of ETH or ERC20 tokens. e.g.:
-
-```
-Contract 0xaaaaaaaaa...: 1 ETH deposits only
-Contract 0xbbbbbbbbb...: 10 DAI deposits only
-```
-
-Anyone can deploy a mixer contract, but it does not make privacy or economic
-sense to deploy multiple contracts of the same denomination, as that would
-unnecessarily make each anonymity pool smaller. The only reason to deploy a
-mixer contract if one already exists for said denomination is if a security
-flaw was discovered in the original.
-
-As such, wallet providers can simply preload the Mixer address they need
-from a predefined list. We assume that users already trust the wallet provider
-to provide the correct address, or else their ETH or tokens could be
-transferred to a malicious actor's account instead.
-
-### Transaction burn relay
-
-###

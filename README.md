@@ -135,7 +135,7 @@ values.
 Generates an identity commitment, which is the hash of the public key, the
 identity nullifier, and the identity trapdoor.
 
-**`genProof(witness: SnarkWitness, provingKey: SnarkProvingKey): SnarkProof`**
+**`async genProof(witness: SnarkWitness, provingKey: SnarkProvingKey): SnarkProof`**
 
 Generates a `SnarkProof`, which can be sent to the Semaphore contract's
 `broadcastSignal()` function, or the Mixer's `mix()` or `mixERC20` functions.

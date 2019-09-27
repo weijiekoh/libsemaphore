@@ -5,17 +5,25 @@ const path = require('path')
 const uuidv4 = require('uuid/v4')
 import * as fs from 'fs'
 
+jest.setTimeout(30000)
 const assert = chai.assert
 
 import * as libsemaphore from '../index'
 
 const circuitPath = path.join(__dirname, '/../../semaphore/semaphorejs/build/circuit.json')
-const provingKeyPath = path.join(__dirname, '/../../semaphore/semaphorejs/build/provingKey.bin')
+const provingKeyPath = path.join(__dirname, '/../../semaphore/semaphorejs/build/proving_key.bin')
+const verifyingKeyPath = path.join(__dirname, '/../../semaphore/semaphorejs/build/verification_key.json')
+
+const cirDef = JSON.parse(fs.readFileSync(circuitPath).toString())
+const provingKey = fs.readFileSync(provingKeyPath)
+const verifyingKey = libsemaphore.parseVerifyingKeyJson(fs.readFileSync(verifyingKeyPath).toString())
 
 const externalNullifier = '0'
 
 describe('libsemaphore', function () {
     const identity = libsemaphore.genIdentity()
+    let witness
+    let circuit
 
     it('genIdentity() should produce values of the correct length and type', async () => {
         assert.equal(identity.keypair.pubKey.length, 2)
@@ -36,13 +44,9 @@ describe('libsemaphore', function () {
         const tree = libsemaphore.setupTree(4)
         const idc = libsemaphore.genIdentityCommitment(identity)
 
-        const cirDef = JSON.parse(
-            fs.readFileSync(circuitPath).toString()
-        )
+        circuit = libsemaphore.genCircuit(cirDef)
 
-        const circuit = libsemaphore.genCircuit(cirDef)
-
-        const { witness } = await libsemaphore.genWitness(
+        const result = await libsemaphore.genWitness(
             'signal0',
             circuit,
             identity,
@@ -51,9 +55,15 @@ describe('libsemaphore', function () {
             idc,
             externalNullifier,
         )
+
+        witness = result.witness
+
         expect(circuit.checkWitness(witness)).toBeTruthy()
     })
 
-    //it('genProof() should generate a valid proof', async () => {
-    //})
+    it('genProof() should generate a valid proof', async () => {
+        const proof = await libsemaphore.genProof(witness, provingKey)
+        const publicSignals = libsemaphore.genPublicSignals(witness, circuit)
+        const isValid = libsemaphore.verifyProof(verifyingKey, proof, publicSignals)
+    })
 })

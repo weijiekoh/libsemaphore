@@ -5,8 +5,8 @@
   "main": "build/index.js",
   "scripts": {
     "watch": "tsc --watch",
-    "test": "jest",
-    "test-debug": "NODE_ENV=local-dev node --inspect-brk ./node_modules/.bin/jest --testPathPattern=__tests__/"
+    "test": "./scripts/downloadSnarks.sh && jest",
+    "test-debug": "./scripts/downloadSnarks.sh && NODE_ENV=local-dev node --inspect-brk ./node_modules/.bin/jest --testPathPattern=__tests__/"
   },
   "repository": {
     "type": "git",

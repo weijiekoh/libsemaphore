@@ -323,6 +323,12 @@ const genPublicSignals = (
     return witness.slice(1, circuit.nPubInputs + circuit.nOutputs+1)
 }
 
+const parseVerifyingKeyJson = (
+    verifyingKeyStr: string,
+) => {
+    return snarkjs.unstringifyBigInts(JSON.parse(verifyingKeyStr))
+}
+
 const verifyProof = (
     verifyingKey: SnarkVerifyingKey,
     proof: SnarkProof,
@@ -334,6 +340,7 @@ const verifyProof = (
 
 // "export = {" ????
 export {
+    parseVerifyingKeyJson,
     setupTree,
     genPubKey,
     genIdentity,

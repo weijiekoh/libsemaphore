@@ -163,13 +163,22 @@ private key associated with `pubKey`.
 
 Returns `false` otherwise.
 
-**`setupTree(prefix: string): MerkleTree`**
+**`setupTree(levels: number, prefix: string): MerkleTree`**
 
 Returns a Merkle tree created using
 [`semaphore-merkle-tree`](https://www.npmjs.com/package/semaphore-merkle-tree)
 with the same number of levels which the Semaphore zk-SNARK circuit expects.
 This tree is also configured to use `MimcSpongeHasher`, which is also what the
 circuit expects.
+
+`levels` sets the number of levels of the tree. A tree with 20 levels, for
+instance, supports up to 1048576 deposits.
+
+**`genCircuit(circuitDefinition: any)`**
+
+Encapsulates `new snarkjs.Circuit(circuitDefinition)`. The `circuitDefinition`
+object should be the `JSON.parse`d result of the `circom` command which
+converts a `.circom` file to a `.json` file.
 
 ### Mixer-specific functions 
 

@@ -146,17 +146,20 @@ const verifySignature = (
     return eddsa.verifyMiMCSponge(msg, signature, pubKey)
 }
 
-const genSignalAndSignalHash = (
+const genMixerSignal = (
     recipientAddress: string,
     broadcasterAddress: string,
     feeAmt: Number | snarkjs.utils.BigNumber,
 ) => {
-    // This is the computed signal
-    const signal = ethers.utils.solidityKeccak256(
+    return ethers.utils.solidityKeccak256(
         ['address', 'address', 'uint256'],
         [recipientAddress, broadcasterAddress, feeAmt.toString()],
     )
+}
 
+const keccak256HexToBigInt = (
+    signal: string,
+): snarkjs.bigInt => {
     const signalAsBuffer = Buffer.from(signal.slice(2), 'hex')
     const signalHashRaw = ethers.utils.solidityKeccak256(
         ['bytes'],
@@ -165,7 +168,65 @@ const genSignalAndSignalHash = (
     const signalHashRawAsBytes = Buffer.from(signalHashRaw.slice(2), 'hex');
     const signalHash: snarkjs.bigInt = beBuff2int(signalHashRawAsBytes.slice(0, 31))
 
-    return { signal, signalHash }
+    return signalHash
+}
+
+const genCircuit = (circuitDefinition: any) => {
+    return new snarkjs.Circuit(circuitDefinition)
+}
+
+const genWitness = async (
+    signal: string,
+    circuit: SnarkCircuit,
+    identity: Identity,
+    tree: tree.MerkleTree,
+    nextIndex: number,
+    identityCommitment: snarkjs.bigInt,
+    externalNullifier: string,
+) => {
+    await tree.update(nextIndex, identityCommitment.toString())
+
+    const identityPath = await tree.path(nextIndex)
+
+    const { identityPathElements, identityPathIndex } = await genPathElementsAndIndex(
+        tree,
+        identityCommitment,
+    )
+
+    const signalHash = keccak256HexToBigInt(signal)
+
+    const { signature, msg } = genSignedMsg(
+        identity.keypair.privKey,
+        externalNullifier,
+        signalHash, 
+    )
+   
+    const witness = circuit.calculateWitness({
+        'identity_pk[0]': identity.keypair.pubKey[0],
+        'identity_pk[1]': identity.keypair.pubKey[1],
+        'auth_sig_r[0]': signature.R8[0],
+        'auth_sig_r[1]': signature.R8[1],
+        auth_sig_s: signature.S,
+        signal_hash: signalHash,
+        external_nullifier: snarkjs.bigInt(externalNullifier),
+        identity_nullifier: identity.identityNullifier,
+        identity_trapdoor: identity.identityTrapdoor,
+        identity_path_elements: identityPathElements,
+        identity_path_index: identityPathIndex,
+        fake_zero: snarkjs.bigInt(0),
+    })
+
+    return {
+        witness,
+        signal,
+        signalHash,
+        signature,
+        msg,
+        tree,
+        identityPath,
+        identityPathIndex,
+        identityPathElements,
+    }
 }
 
 const genMixerWitness = async (
@@ -189,9 +250,11 @@ const genMixerWitness = async (
         identityCommitment,
     )
 
-    const { signalHash, signal } = genSignalAndSignalHash(
+    const signal = genMixerSignal(
         recipientAddress, relayerAddress, feeAmt,
     )
+
+    const signalHash = keccak256HexToBigInt(signal)
 
     const { signature, msg } = genSignedMsg(
         identity.keypair.privKey,
@@ -227,7 +290,8 @@ const genMixerWitness = async (
 }
 
 const setupTree = (
-    prefix: string = 'semaphore'
+    levels: number,
+    prefix: string = 'semaphore',
 ): tree.MerkleTree => {
     const storage = new MemStorage()
     const hasher = new MimcSpongeHasher()
@@ -236,7 +300,7 @@ const setupTree = (
         prefix,
         storage,
         hasher,
-        20,
+        levels,
         0,
     )
 }
@@ -273,9 +337,11 @@ export {
     setupTree,
     genPubKey,
     genIdentity,
+    genWitness,
     genMixerWitness,
     genProof,
     genPublicSignals,
+    genCircuit,
     verifyProof,
     verifySignature,
     signMsg,

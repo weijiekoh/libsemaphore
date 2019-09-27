@@ -150,7 +150,7 @@ const genMixerSignal = (
     recipientAddress: string,
     broadcasterAddress: string,
     feeAmt: Number | snarkjs.utils.BigNumber,
-) => {
+): string => {
     return ethers.utils.solidityKeccak256(
         ['address', 'address', 'uint256'],
         [recipientAddress, broadcasterAddress, feeAmt.toString()],
@@ -241,52 +241,19 @@ const genMixerWitness = async (
     externalNullifier: string,
 ) => {
 
-    await tree.update(nextIndex, identityCommitment.toString())
-
-    const identityPath = await tree.path(nextIndex)
-
-    const { identityPathElements, identityPathIndex } = await genPathElementsAndIndex(
-        tree,
-        identityCommitment,
-    )
-
     const signal = genMixerSignal(
         recipientAddress, relayerAddress, feeAmt,
     )
 
-    const signalHash = keccak256HexToBigInt(signal)
-
-    const { signature, msg } = genSignedMsg(
-        identity.keypair.privKey,
-        externalNullifier,
-        signalHash, 
-    )
-   
-    const witness = circuit.calculateWitness({
-        'identity_pk[0]': identity.keypair.pubKey[0],
-        'identity_pk[1]': identity.keypair.pubKey[1],
-        'auth_sig_r[0]': signature.R8[0],
-        'auth_sig_r[1]': signature.R8[1],
-        auth_sig_s: signature.S,
-        signal_hash: signalHash,
-        external_nullifier: snarkjs.bigInt(externalNullifier),
-        identity_nullifier: identity.identityNullifier,
-        identity_trapdoor: identity.identityTrapdoor,
-        identity_path_elements: identityPathElements,
-        identity_path_index: identityPathIndex,
-    })
-
-    return {
-        witness,
+    return genWitness(
         signal,
-        signalHash,
-        signature,
-        msg,
+        circuit,
+        identity,
         tree,
-        identityPath,
-        identityPathIndex,
-        identityPathElements,
-    }
+        nextIndex,
+        identityCommitment,
+        externalNullifier,
+    )
 }
 
 const setupTree = (
@@ -338,13 +305,13 @@ const verifyProof = (
     return snarkjs.groth.isValid(verifyingKey, proof, publicSignals)
 }
 
-// "export = {" ????
 export {
     parseVerifyingKeyJson,
     setupTree,
     genPubKey,
     genIdentity,
     genWitness,
+    genMixerSignal,
     genMixerWitness,
     genProof,
     genPublicSignals,

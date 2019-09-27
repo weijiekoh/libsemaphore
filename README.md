@@ -4,7 +4,7 @@ This repository contains the code necessary for third-party developers to
 easily integrate Semaphore, a zero-knowledge signalling gadget, or MicroMix, a
 mixer built upon Semaphore.
 
-## System design
+## Using libsemaphore to build a mixer
 
 We refer below to any third-party app, like a mixer user interface, as a
 *client*.
@@ -17,7 +17,12 @@ To use the mixer, each client must be able to:
 2. Generate and store an `Identity` (which contains an `EddsaKeyPair`, identity
    nullifier, and identity trapdoor).
 
+    - Use `genIdentity()`
+
 3. Generate and store an identity commitment using the items above data.
+
+    - Use `genIdentityCommitment(identity)` where `identity` is the return
+      value of the above `genIdentity()`
 
 4. Perform an Ethereum transaction containing the identity commitment as data
    to the desired Mixer contract's `deposit` or `depositERC20` function.
@@ -29,19 +34,39 @@ To use the mixer, each client must be able to:
 
 7. Decide on a relayer to which to send a withdrawal transaction.
 
-8. Generate a zk-SNARK proof using the proving key. This has two substeps:
 
-    8.1. Generate a *witness* `w` using the list of leaves, the EdDSA keypair,
-         identity nullifier, identity trapdoor, recipient's address, and a fee for the
-         relayer. This step will fail if these inputs are invalid.
+8. Generate a *witness* `w` using the list of leaves, the EdDSA keypair,
+     identity nullifier, identity trapdoor, recipient's address, and a fee for the
+     relayer. This step will fail if these inputs are invalid.
 
-    8.2. Generate a *proof* using `w` and the proving key.
+     - Use `genMixerWitness(...)` (see below for the parameters)
+
+9. Generate a *proof* using `w` and the proving key.
+
+    - Use `genProof(w, provingKey)`
 
 9. Optionally download a verification key and use it to verify the proof before
    sending it to the Mixer contract.
 
+   - To load the verifying key, which is a JSON file, note that all numeric
+     values in it are represented by strings. A convenience function to
+     un-stringify and parse the JSON is libsemaphore's
+     `parseVerifyingKeyJson(verifyingKeyAsText)`.
+
+   - To verify the proof off-chain, use the `verifyProof()` function.
+
 10. Send the proof, recipient's address, fee, and relayers address, along with
     to the Mixer contract's `mix` or `mixERC20` function.
+
+## Using libsemaphore to build other applications
+
+Other applications of Semaphore, like private DAOs or anonymous login, use the
+Semaphore contract differently than MicroMix. The steps to generate an identity
+and identity commitment, however, remain the same. The identity commitment
+should be sent to Semaphore's `insertIdentity()` contract function.
+
+You can generate a witness with any arbitary signal using the `genWitness(...)`
+function. See below for the required parameters.
 
 ## Available types, interfaces, and functions
 
@@ -180,22 +205,18 @@ Encapsulates `new snarkjs.Circuit(circuitDefinition)`. The `circuitDefinition`
 object should be the `JSON.parse`d result of the `circom` command which
 converts a `.circom` file to a `.json` file.
 
-### Mixer-specific functions 
-
-**`async genMixerWitness(...): SnarkWitness`**
+**`async genWitness(...): SnarkWitness`**
 
 This function has the following signature:
 
 ```ts
-const genMixerWitness = async (
+const genWitness = async (
+    signal: string,
     circuit: SnarkCircuit,
     identity: Identity,
     tree: tree.MerkleTree,
     nextIndex: number,
     identityCommitment: snarkjs.bigInt,
-    recipientAddress: string,
-    relayerAddress: string,
-    feeAmt: Number | number | snarkjs.bigInt,
     externalNullifier: string,
 )
 ```
@@ -216,3 +237,14 @@ It returns an object as such:
 Only `witness` is essential to generate the proof; the other data is only
 useful for debugging and additional off-chain checks, such as verifying the
 signature and the Merkle tree root.
+
+### Mixer-specific functions 
+
+**`genMixerSignal(recipientAddress: string, broadcasterAddress: string, feeAmt: Number | snarkjs.utils.BigNumber): string`**
+
+Generates the signal that MicroMix needs. Returns a hex string.
+
+It returns the Keccak256 hash of the recipient's address, broadcaster's
+address, and the fee, in order to prevent frontrunning of `mix()` transactions.
+
+Pass the signal to `genWitness`

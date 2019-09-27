@@ -40,6 +40,14 @@ describe('libsemaphore', function () {
         assert.isAbove(idc.toString(16).length, 48)
     })
 
+    it('genMixerSignal should return a hash', async () => {
+        const signal = libsemaphore.genMixerSignal(
+            '0xabcd', '0xdefd', 0
+        )
+        expect(signal).toHaveLength(66)
+        expect(signal.slice(0, 2)).toEqual('0x')
+    })
+
     it('genWitness() should generate a witness', async () => {
         const tree = libsemaphore.setupTree(4)
         const idc = libsemaphore.genIdentityCommitment(identity)

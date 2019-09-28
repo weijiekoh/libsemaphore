@@ -49,7 +49,6 @@ describe('libsemaphore', function () {
     })
 
     it('genWitness() should generate a witness', async () => {
-        const tree = libsemaphore.setupTree(4)
         const idc = libsemaphore.genIdentityCommitment(identity)
 
         circuit = libsemaphore.genCircuit(cirDef)
@@ -58,9 +57,8 @@ describe('libsemaphore', function () {
             'signal0',
             circuit,
             identity,
-            tree,
-            0,
-            idc,
+            [idc],
+            4,
             externalNullifier,
         )
 
@@ -72,6 +70,7 @@ describe('libsemaphore', function () {
     it('genProof() should generate a valid proof', async () => {
         const proof = await libsemaphore.genProof(witness, provingKey)
         const publicSignals = libsemaphore.genPublicSignals(witness, circuit)
+        debugger
         const isValid = libsemaphore.verifyProof(verifyingKey, proof, publicSignals)
     })
 })

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-VERIFICATION_KEY_JSON="https://www.dropbox.com/s/foqrsu45hha0uiy/verification_key.json?dl=1"
-PROVING_KEY_BIN="https://www.dropbox.com/s/n6fuxepw6hb4fkr/proving_key.bin?dl=1"
-CIRCUIT_JSON="https://www.dropbox.com/s/cy7wlak4kec9h5n/circuit.json?dl=1"
+VERIFICATION_KEY_JSON="https://www.dropbox.com/s/gte22ujvd75fuij/verification_key.json?dl=1"
+PROVING_KEY_BIN="https://www.dropbox.com/s/y8nxhe0d81ambb9/proving_key.bin?dl=1"
+CIRCUIT_JSON="https://www.dropbox.com/s/94adwgb1x4dbhf3/circuit.json?dl=1"
 
 CIRCUIT_JSON_PATH="semaphore/semaphorejs/build/circuit.json"
 PROVING_KEY_BIN_PATH="semaphore/semaphorejs/build/proving_key.bin"

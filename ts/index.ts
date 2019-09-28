@@ -146,6 +146,19 @@ const verifySignature = (
     return eddsa.verifyMiMCSponge(msg, signature, pubKey)
 }
 
+const genTree = async (
+    treeDepth: number,
+    leaves: snarkjs.bigInt[],
+) => {
+    debugger
+    const tree = setupTree(treeDepth)
+
+    for (let i=0; i<leaves.length; i++) {
+        await tree.update(i, leaves[i].toString())
+    }
+
+    return tree
+}
 const genMixerSignal = (
     recipientAddress: string,
     broadcasterAddress: string,
@@ -179,14 +192,15 @@ const genWitness = async (
     signal: string,
     circuit: SnarkCircuit,
     identity: Identity,
-    tree: tree.MerkleTree,
-    nextIndex: number,
-    identityCommitment: snarkjs.bigInt,
+    idCommitments: snarkjs.bigInt[],
+    treeDepth: number,
     externalNullifier: string,
 ) => {
-    await tree.update(nextIndex, identityCommitment.toString())
+    const identityCommitment = genIdentityCommitment(identity)
+    const index = idCommitments.indexOf(identityCommitment)
+    const tree = await genTree(treeDepth, idCommitments)
 
-    const identityPath = await tree.path(nextIndex)
+    const identityPath = await tree.path(index)
 
     const { identityPathElements, identityPathIndex } = await genPathElementsAndIndex(
         tree,
@@ -232,9 +246,8 @@ const genWitness = async (
 const genMixerWitness = async (
     circuit: SnarkCircuit,
     identity: Identity,
-    tree: tree.MerkleTree,
-    nextIndex: number,
-    identityCommitment: snarkjs.bigInt,
+    idCommitments: snarkjs.bigInt[],
+    treeDepth: number,
     recipientAddress: string,
     relayerAddress: string,
     feeAmt: Number | number | snarkjs.bigInt,
@@ -249,10 +262,9 @@ const genMixerWitness = async (
         signal,
         circuit,
         identity,
-        tree,
-        nextIndex,
-        identityCommitment,
-        externalNullifier,
+        idCommitments,
+        treeDepth,
+        externalNullifier
     )
 }
 
@@ -285,7 +297,7 @@ const genProof = async (
 const genPublicSignals = (
     witness: any,
     circuit: snarkjs.Circuit,
-) => {
+): SnarkPublicSignals => {
 
     return witness.slice(1, circuit.nPubInputs + circuit.nOutputs+1)
 }
@@ -305,6 +317,25 @@ const verifyProof = (
     return snarkjs.groth.isValid(verifyingKey, proof, publicSignals)
 }
 
+const formatForVerifierContract = (
+    proof: SnarkProof,
+    publicSignals: SnarkPublicSignals,
+) => {
+    const stringify = (x) => x.toString()
+
+    return {
+        proof: {
+            a: stringify(proof.pi_a),
+            b: [ 
+                [ proof.pi_b[0][1].toString(), proof.pi_b[0][0].toString() ],
+                [ proof.pi_b[1][1].toString(), proof.pi_b[1][0].toString() ],
+            ],
+            c: stringify(proof.pi_c),
+        },
+        publicSignals: stringify(publicSignals)
+    }
+}
+
 export {
     parseVerifyingKeyJson,
     setupTree,
@@ -316,6 +347,7 @@ export {
     genProof,
     genPublicSignals,
     genCircuit,
+    genTree,
     verifyProof,
     verifySignature,
     signMsg,

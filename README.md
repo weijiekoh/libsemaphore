@@ -17,12 +17,27 @@ To use the mixer, each client must be able to:
 2. Generate and store an `Identity` (which contains an `EddsaKeyPair`, identity
    nullifier, and identity trapdoor).
 
-    - Use `genIdentity()`
+   ```ts
+   import {
+       genIdentity,
+       genIdentityCommitment,
+       genProof,
+       genCircuit,
+       genWitness,
+       genMixerSignal,
+       parseVerifyingKeyJson,
+       genPublicSignals,
+       formatForVerifierContract,
+   } from 'libsemaphore'
+
+   const identity = genIdentity()`
+   ```
 
 3. Generate and store an identity commitment using the items above data.
 
-    - Use `genIdentityCommitment(identity)` where `identity` is the return
-      value of the above `genIdentity()`
+    ```ts
+        const identityCommitment = genIdentityCommitment(identity)
+    ```
 
 4. Perform an Ethereum transaction containing the identity commitment as data
    to the desired Mixer contract's `deposit` or `depositERC20` function.
@@ -34,18 +49,38 @@ To use the mixer, each client must be able to:
 
 7. Decide on a relayer to which to send a withdrawal transaction.
 
+8. Generate the signal tailored for the mixer and the zk-SNARK witness. This
+   step will fail if these inputs are invalid.
 
-8. Generate a *witness* `w` using the list of leaves, the EdDSA keypair,
-     identity nullifier, identity trapdoor, recipient's address, and a fee for the
-     relayer. This step will fail if these inputs are invalid.
+   The default tree depth is 20, and the leaves come from the Mixer contract's
+   `getLeaves()` function.
 
-     - Use `genMixerWitness(...)` (see below for the parameters)
+     ```ts
+        circuit = genCircuit(cirDef)
+
+        const signal = genMixerSignal(
+            recipientAddress,
+            broadcasterAddress,
+            feeAmt,
+        )
+
+        const result = await genWitness(
+            signal,
+            circuit,
+            identity,
+            LEAVES,
+            TREE_DEPTH,
+            externalNullifier,
+        )
+
+        witness = result.witness
+     ```
 
 9. Generate a *proof* using `w` and the proving key.
 
     - Use `genProof(w, provingKey)`
 
-9. Optionally download a verification key and use it to verify the proof before
+10. Optionally download a verification key and use it to verify the proof before
    sending it to the Mixer contract.
 
    - To load the verifying key, which is a JSON file, note that all numeric
@@ -53,10 +88,39 @@ To use the mixer, each client must be able to:
      un-stringify and parse the JSON is libsemaphore's
      `parseVerifyingKeyJson(verifyingKeyAsText)`.
 
+        ```ts
+        // remember to import the fs module: import * as fs from 'fs'
+        const verifyingKey = parseVerifyingKeyJson(fs.readFileSync(verifyingKeyPath).toString())
+        ```
+
    - To verify the proof off-chain, use the `verifyProof()` function.
 
-10. Send the proof, recipient's address, fee, and relayers address, along with
-    to the Mixer contract's `mix` or `mixERC20` function.
+        ```ts
+        const publicSignals = genPublicSignals(witness, circuit)
+        const isValid = verifyProof(verifyingKey, proof, publicSignals)
+        ```
+
+11. Send the proof, recipient's address, fee, and relayers address, along with
+    to the Mixer contract's `mix` or `mixERC20` function, via a relayer. The
+    following code snippet, however, will demonstrate how to invoke the mixer
+    contract directly, assuming that `mixerContract` is an `ethers.Contract`
+    instance.
+
+    ```ts
+    const formatted = formatForVerifierContract(proof, publicSignals)
+    const tx = await mixerContract.mix(
+        {
+            signal,
+            formatted.a,
+            formatted.b,
+            formatted.c,
+            formatted.input,
+            recipientAddress,
+            fee,
+        }
+        relayerAddress,
+    )
+    ```
 
 ## Using libsemaphore to build other applications
 
@@ -201,7 +265,7 @@ instance, supports up to 1048576 deposits.
 
 **`genCircuit(circuitDefinition: any)`**
 
-Encapsulates `new snarkjs.Circuit(circuitDefinition)`. The `circuitDefinition`
+Returns a `new snarkjs.Circuit(circuitDefinition)`. The `circuitDefinition`
 object should be the `JSON.parse`d result of the `circom` command which
 converts a `.circom` file to a `.json` file.
 
@@ -214,12 +278,20 @@ const genWitness = async (
     signal: string,
     circuit: SnarkCircuit,
     identity: Identity,
-    tree: tree.MerkleTree,
-    nextIndex: number,
-    identityCommitment: snarkjs.bigInt,
+    idCommitments: snarkjs.bigInt[],
+    treeDepth: number,
     externalNullifier: string,
 )
 ```
+
+- `signal` is the string you wish to broadcast.
+- `circuit` is the output of `genCircuit()`.
+- `identity` is the `Identity` whose identity commitment you want to prove is
+  in the set of registered identities.
+- `idCommitments` is an array of registered identity commmitments; i.e. the
+  leaves of the tree.
+- `treeDepth` is the number of levels which the Merkle tree used has
+- `externalNullifier` is the current external nullifier
 
 It returns an object as such:
 
@@ -237,6 +309,11 @@ It returns an object as such:
 Only `witness` is essential to generate the proof; the other data is only
 useful for debugging and additional off-chain checks, such as verifying the
 signature and the Merkle tree root.
+
+**`formatForVerifierContract = (proof: SnarkProof, publicSignals: SnarkPublicSignals`**
+
+Converts the data in `proof` and `publicSignals` to strings and rearranges
+elements of `proof.pi_b` so that `snarkjs`'s `verifier.sol` will accept it.
 
 ### Mixer-specific functions 
 

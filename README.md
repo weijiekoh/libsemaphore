@@ -117,7 +117,7 @@ To use the mixer, each client must be able to:
             formatted.input,
             recipientAddress,
             fee,
-        }
+        },
         relayerAddress,
     )
     ```

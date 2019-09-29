@@ -321,15 +321,13 @@ const formatForVerifierContract = (
     const stringify = (x) => x.toString()
 
     return {
-        proof: {
-            a: stringify(proof.pi_a),
-            b: [ 
-                [ proof.pi_b[0][1].toString(), proof.pi_b[0][0].toString() ],
-                [ proof.pi_b[1][1].toString(), proof.pi_b[1][0].toString() ],
-            ],
-            c: stringify(proof.pi_c),
-        },
-        publicSignals: stringify(publicSignals)
+        a: [ proof.pi_a[0].toString(), proof.pi_a[1].toString() ],
+        b: [ 
+            [ proof.pi_b[0][1].toString(), proof.pi_b[0][0].toString() ],
+            [ proof.pi_b[1][1].toString(), proof.pi_b[1][0].toString() ],
+        ],
+        c: [ proof.pi_c[0].toString(), proof.pi_c[1].toString() ],
+        input: publicSignals.map(stringify),
     }
 }
 

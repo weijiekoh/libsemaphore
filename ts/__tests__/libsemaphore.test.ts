@@ -25,6 +25,8 @@ describe('libsemaphore', function () {
     const identity = libsemaphore.genIdentity()
     let witness
     let circuit
+    let proof
+    let publicSignals
 
     it('genIdentity() should produce values of the correct length and type', async () => {
         assert.equal(identity.keypair.pubKey.length, 2)
@@ -69,9 +71,18 @@ describe('libsemaphore', function () {
     })
 
     it('genProof() should generate a valid proof', async () => {
-        const proof = await libsemaphore.genProof(witness, provingKey)
-        const publicSignals = libsemaphore.genPublicSignals(witness, circuit)
-        debugger
+        proof = await libsemaphore.genProof(witness, provingKey)
+        publicSignals = libsemaphore.genPublicSignals(witness, circuit)
         const isValid = libsemaphore.verifyProof(verifyingKey, proof, publicSignals)
+    })
+
+    it('formatForVerifierContract() should produce the correct params', async () => {
+        const params = libsemaphore.formatForVerifierContract(proof, publicSignals)
+        expect(params.input).toHaveLength(publicSignals.length)
+        expect(params.a).toHaveLength(2)
+        expect(params.b).toHaveLength(2)
+        expect(params.b[0]).toHaveLength(2)
+        expect(params.b[1]).toHaveLength(2)
+        expect(params.c).toHaveLength(2)
     })
 })

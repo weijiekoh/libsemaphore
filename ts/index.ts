@@ -349,4 +349,5 @@ export {
     verifySignature,
     signMsg,
     genIdentityCommitment,
+    formatForVerifierContract,
 }

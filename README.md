@@ -314,6 +314,19 @@ signature and the Merkle tree root.
 
 Converts the data in `proof` and `publicSignals` to strings and rearranges
 elements of `proof.pi_b` so that `snarkjs`'s `verifier.sol` will accept it.
+To be specific, it returns an object as such:
+
+```ts
+{
+    a: [ proof.pi_a[0].toString(), proof.pi_a[1].toString() ],
+    b: [ 
+         [ proof.pi_b[0][1].toString(), proof.pi_b[0][0].toString() ],
+         [ proof.pi_b[1][1].toString(), proof.pi_b[1][0].toString() ],
+    ],
+    c: [ proof.pi_c[0].toString(), proof.pi_c[1].toString() ],
+    input: publicSignals.map((x) => x.toString()),
+}
+```
 
 ### Mixer-specific functions 
 

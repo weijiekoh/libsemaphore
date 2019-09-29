@@ -96,17 +96,6 @@ const genIdentityCommitment = (
     ])
 }
 
-const genMixerMsg = (
-    externalNullifier: string,
-    signalHash: snarkjs.bigInt,
-): snarkjs.bigInt => {
-
-    return circomlib.mimcsponge.multiHash([
-        snarkjs.bigInt(externalNullifier),
-        snarkjs.bigInt(signalHash), 
-    ])
-}
-
 const signMsg = (
     privKey: EddsaPrivateKey,
     msg: snarkjs.bigInt,
@@ -117,10 +106,13 @@ const signMsg = (
 
 const genSignedMsg = (
     privKey: EddsaPrivateKey,
-    externalNullifier: string,
+    externalNullifier: snarkjs.bigInt,
     signalHash: snarkjs.bigInt,
 ) => {
-    const msg = genMixerMsg(externalNullifier, signalHash)
+    const msg = circomlib.mimcsponge.multiHash([
+        externalNullifier,
+        signalHash
+    ])
 
     return {
         msg,
@@ -193,7 +185,7 @@ const genWitness = async (
     identity: Identity,
     idCommitments: snarkjs.bigInt[] | BigInt[] | ethers.utils.BigNumber[],
     treeDepth: number,
-    externalNullifier: string,
+    externalNullifier: snarkjs.bigInt,
 ) => {
     // convert idCommitments
     const idCommitmentsAsBigInts: snarkjs.bigInt[] = []
@@ -227,7 +219,7 @@ const genWitness = async (
         'auth_sig_r[1]': signature.R8[1],
         auth_sig_s: signature.S,
         signal_hash: signalHash,
-        external_nullifier: snarkjs.bigInt(externalNullifier),
+        external_nullifier: externalNullifier,
         identity_nullifier: identity.identityNullifier,
         identity_trapdoor: identity.identityTrapdoor,
         identity_path_elements: identityPathElements,
@@ -256,7 +248,7 @@ const genMixerWitness = async (
     recipientAddress: string,
     relayerAddress: string,
     feeAmt: Number | number | snarkjs.bigInt,
-    externalNullifier: string,
+    externalNullifier: snarkjs.bigInt,
 ) => {
 
     const signal = genMixerSignal(

@@ -150,7 +150,6 @@ const genTree = async (
     treeDepth: number,
     leaves: snarkjs.bigInt[],
 ) => {
-    debugger
     const tree = setupTree(treeDepth)
 
     for (let i=0; i<leaves.length; i++) {
@@ -192,12 +191,18 @@ const genWitness = async (
     signal: string,
     circuit: SnarkCircuit,
     identity: Identity,
-    idCommitments: snarkjs.bigInt[],
+    idCommitments: snarkjs.bigInt[] | BigInt[] | ethers.utils.BigNumber[],
     treeDepth: number,
     externalNullifier: string,
 ) => {
+    // convert idCommitments
+    const idCommitmentsAsBigInts: snarkjs.bigInt[] = []
+    for (let idc of idCommitments) {
+        idCommitmentsAsBigInts.push(snarkjs.bigInt(idc.toString()))
+    }
+
     const identityCommitment = genIdentityCommitment(identity)
-    const index = idCommitments.indexOf(identityCommitment)
+    const index = idCommitmentsAsBigInts.indexOf(identityCommitment)
     const tree = await genTree(treeDepth, idCommitments)
 
     const identityPath = await tree.path(index)

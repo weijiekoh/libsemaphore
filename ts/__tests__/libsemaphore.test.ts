@@ -4,6 +4,7 @@ chai.use(chaiAsPromised)
 const path = require('path')
 const uuidv4 = require('uuid/v4')
 import * as fs from 'fs'
+import * as ethers from 'ethers'
 
 jest.setTimeout(30000)
 const assert = chai.assert
@@ -57,7 +58,7 @@ describe('libsemaphore', function () {
             'signal0',
             circuit,
             identity,
-            [idc],
+            [new ethers.utils.BigNumber(idc.toString())],
             4,
             externalNullifier,
         )

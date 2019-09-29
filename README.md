@@ -278,7 +278,7 @@ const genWitness = async (
     signal: string,
     circuit: SnarkCircuit,
     identity: Identity,
-    idCommitments: snarkjs.bigInt[],
+    idCommitments: snarkjs.bigInt[] | BigInt[] | ethers.utils.BigNumber[],
     treeDepth: number,
     externalNullifier: string,
 )

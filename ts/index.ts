@@ -8,6 +8,7 @@ const eddsa = circomlib.eddsa
 const MemStorage = storage.MemStorage
 const MerkleTree = tree.MerkleTree
 const MimcSpongeHasher = hashers.MimcSpongeHasher
+const stringifyBigInts: (obj: object) => object = snarkjs.stringifyBigInts
 
 export type EddsaPrivateKey = Buffer
 export type EddsaPublicKey = snarkjs.bigInt[]
@@ -348,4 +349,5 @@ export {
     signMsg,
     genIdentityCommitment,
     formatForVerifierContract,
+    stringifyBigInts,
 }

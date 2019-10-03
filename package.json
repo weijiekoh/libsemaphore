@@ -7,7 +7,6 @@
     "watch": "tsc --watch",
     "build": "tsc",
     "prepare": "npm run build",
-    "prepublishOnly": "npm test",
     "test": "./scripts/downloadSnarks.sh && jest",
     "test-debug": "./scripts/downloadSnarks.sh && NODE_ENV=local-dev node --inspect-brk ./node_modules/.bin/jest --testPathPattern=__tests__/"
   },

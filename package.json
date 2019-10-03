@@ -1,10 +1,12 @@
 {
   "name": "libsemaphore",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "A Semaphore and MicroMix client library",
   "main": "build/index.js",
   "scripts": {
     "watch": "tsc --watch",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test",
     "test": "./scripts/downloadSnarks.sh && jest",
     "test-debug": "./scripts/downloadSnarks.sh && NODE_ENV=local-dev node --inspect-brk ./node_modules/.bin/jest --testPathPattern=__tests__/"
   },

@@ -332,6 +332,10 @@ To be specific, it returns an object as such:
 
 Encapsulates `snarkjs.stringifyBigInts()`. Makes it easy to convert `SnarkProof`s to JSON. 
 
+**`unstringifyBigInts = (obj: any) => object`**
+
+Encapsulates `snarkjs.unstringifyBigInts()`. Makes it easy to convert JSON to `SnarkProof`s.
+
 ### Mixer-specific functions 
 
 **`genMixerSignal(recipientAddress: string, broadcasterAddress: string, feeAmt: Number | snarkjs.utils.BigNumber): string`**

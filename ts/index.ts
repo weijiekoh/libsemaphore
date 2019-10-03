@@ -9,6 +9,7 @@ const MemStorage = storage.MemStorage
 const MerkleTree = tree.MerkleTree
 const MimcSpongeHasher = hashers.MimcSpongeHasher
 const stringifyBigInts: (obj: object) => object = snarkjs.stringifyBigInts
+const unstringifyBigInts: (obj: object) => object = snarkjs.unstringifyBigInts
 
 export type EddsaPrivateKey = Buffer
 export type EddsaPublicKey = snarkjs.bigInt[]
@@ -350,4 +351,5 @@ export {
     genIdentityCommitment,
     formatForVerifierContract,
     stringifyBigInts,
+    unstringifyBigInts,
 }

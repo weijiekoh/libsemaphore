@@ -35,54 +35,65 @@ describe('libsemaphore', function () {
         assert.equal(typeof identity.identityTrapdoor, 'bigint')
     })
 
-    it('identityCommitment() should produce a value of the correct length and type', async () => {
-        const idc = libsemaphore.genIdentityCommitment(identity)
-        assert.equal(typeof idc, 'bigint')
-        assert.isBelow(idc.toString(16).length, 65)
-        // This may fail in very rare occasions; just run the test again
-        assert.isAbove(idc.toString(16).length, 48)
+    it('serialiseIdentity() and unSerialiseIdentity() should work', async () => {
+        const serialisedId = libsemaphore.serialiseIdentity(identity)
+        const unSerialisedId = libsemaphore.unSerialiseIdentity(serialisedId)
+
+        expect(unSerialisedId).toEqual(identity)
+        expect(unSerialisedId.identityNullifier).toEqual(identity.identityNullifier)
+        expect(unSerialisedId.identityTrapdoor).toEqual(identity.identityTrapdoor)
+        expect(unSerialisedId.keypair.privKey.toString('hex')).toEqual(identity.keypair.privKey.toString('hex'))
+        expect(unSerialisedId.keypair.pubKey).toEqual(identity.keypair.pubKey)
     })
 
-    it('genMixerSignal should return a hash', async () => {
-        const signal = libsemaphore.genMixerSignal(
-            '0xabcd', '0xdefd', 0
-        )
-        expect(signal).toHaveLength(66)
-        expect(signal.slice(0, 2)).toEqual('0x')
-    })
+	it('identityCommitment() should produce a value of the correct length and type', async () => {
+		const idc = libsemaphore.genIdentityCommitment(identity)
+		assert.equal(typeof idc, 'bigint')
+		assert.isBelow(idc.toString(16).length, 65)
+		// This may fail in very rare occasions; just run the test again
+		assert.isAbove(idc.toString(16).length, 48)
+	})
 
-    it('genWitness() should generate a witness', async () => {
-        const idc = libsemaphore.genIdentityCommitment(identity)
+	it('genMixerSignal should return a hash', async () => {
+		const signal = libsemaphore.genMixerSignal(
+			'0xabcd', '0xdefd', 0
+		)
+		expect(signal).toHaveLength(66)
+		expect(signal.slice(0, 2)).toEqual('0x')
+	})
 
-        circuit = libsemaphore.genCircuit(cirDef)
+	it('genWitness() should generate a witness', async () => {
+		const idc = libsemaphore.genIdentityCommitment(identity)
 
-        const result = await libsemaphore.genWitness(
-            'signal0',
-            circuit,
-            identity,
-            [new ethers.utils.BigNumber(idc.toString())],
-            4,
-            externalNullifier,
-        )
+		circuit = libsemaphore.genCircuit(cirDef)
 
-        witness = result.witness
+		const result = await libsemaphore.genWitness(
+			'signal0',
+			circuit,
+			identity,
+			[new ethers.utils.BigNumber(idc.toString())],
+			4,
+			externalNullifier,
+		)
 
-        expect(circuit.checkWitness(witness)).toBeTruthy()
-    })
+		witness = result.witness
 
-    it('genProof() should generate a valid proof', async () => {
-        proof = await libsemaphore.genProof(witness, provingKey)
-        publicSignals = libsemaphore.genPublicSignals(witness, circuit)
-        const isValid = libsemaphore.verifyProof(verifyingKey, proof, publicSignals)
-    })
+		expect(circuit.checkWitness(witness)).toBeTruthy()
+	})
 
-    it('formatForVerifierContract() should produce the correct params', async () => {
-        const params = libsemaphore.formatForVerifierContract(proof, publicSignals)
-        expect(params.input).toHaveLength(publicSignals.length)
-        expect(params.a).toHaveLength(2)
-        expect(params.b).toHaveLength(2)
-        expect(params.b[0]).toHaveLength(2)
-        expect(params.b[1]).toHaveLength(2)
-        expect(params.c).toHaveLength(2)
-    })
+	it('genProof() should generate a valid proof', async () => {
+		proof = await libsemaphore.genProof(witness, provingKey)
+		publicSignals = libsemaphore.genPublicSignals(witness, circuit)
+		const isValid = libsemaphore.verifyProof(verifyingKey, proof, publicSignals)
+	})
+
+	it('formatForVerifierContract() should produce the correct params', async () => {
+		const params = libsemaphore.formatForVerifierContract(proof, publicSignals)
+		expect(params.input).toHaveLength(publicSignals.length)
+		expect(params.a).toHaveLength(2)
+		expect(params.b).toHaveLength(2)
+		expect(params.b[0]).toHaveLength(2)
+		expect(params.b[1]).toHaveLength(2)
+		expect(params.c).toHaveLength(2)
+	})
 })

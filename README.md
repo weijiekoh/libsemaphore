@@ -28,6 +28,10 @@ To use the mixer, each client must be able to:
        parseVerifyingKeyJson,
        genPublicSignals,
        formatForVerifierContract,
+       unstringifyBigInts
+       stringifybigints,
+       serialiseIdentity, // serializeIdentity also works
+       unSerialiseIdentity, // unSerializeIdentity also works
    } from 'libsemaphore'
 
    const identity = genIdentity()`
@@ -218,6 +222,24 @@ This is a convenience function to generate a fresh and random `Identity`. That
 is, the 32-byte private key for the `EddsaKeyPair` is randomly generated, as
 are the distinct 31-byte identity nullifier and the 31-byte identity trapdoor
 values.
+
+**`serialiseIdentity(identity: Identity): string`**
+
+Converts an `Identity` into a JSON string which looks like this:
+
+```json
+["e82cc2b8654705e427df423c6300307a873a2e637028fab3163cf95b18bb172e","a02e517dfb3a4184adaa951d02bfe0fe092d1ee34438721d798db75b8db083","15c6540bf7bddb0616984fccda7e954a0fb5ea4679ac686509dc4bd7ba9c3b"]
+```
+
+You can also spell this function as `serializeIdentity`.
+
+To convert this string back into an `Identity`, use `unSerialiseIdentity()`.
+
+**`unSerialiseIdentity(string: serialisedId): Identity`**
+
+Converts the `string` output of `serialiseIdentity()` to an `Identity`.
+
+You can also spell this function as `unSerializeIdentity`.
 
 **`genIdentityCommitment(identity: Identity): snarkjs.bigInt`**
 

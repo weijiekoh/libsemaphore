@@ -87,6 +87,31 @@ const genIdentity = (
     }
 }
 
+const serializeIdentity = (
+    identity: Identity,
+): string => {
+    const data = [
+        identity.keypair.privKey.toString('hex'),
+        identity.identityNullifier.toString(16),
+        identity.identityTrapdoor.toString(16),
+    ]
+    return JSON.stringify(data)
+}
+
+const unSerializeIdentity = (
+    serialisedIdentity: string,
+): Identity => {
+    const data = JSON.parse(serialisedIdentity)
+    return {
+        keypair: genEddsaKeyPair(Buffer.from(data[0], 'hex')),
+        identityNullifier: snarkjs.bigInt('0x' + data[1]),
+        identityTrapdoor: snarkjs.bigInt('0x' + data[2]),
+    }
+}
+
+const serialiseIdentity = serializeIdentity
+const unSerialiseIdentity = unSerializeIdentity
+
 const genIdentityCommitment = (
     identity: Identity,
 ): snarkjs.bigInt => {
@@ -352,4 +377,6 @@ export {
     formatForVerifierContract,
     stringifyBigInts,
     unstringifyBigInts,
+    serialiseIdentity,
+    unSerialiseIdentity,
 }

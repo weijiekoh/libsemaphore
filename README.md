@@ -40,13 +40,52 @@ To use the mixer, each client must be able to:
 3. Generate and store an identity commitment using the items above data.
 
     ```ts
-        const identityCommitment = genIdentityCommitment(identity)
+    const identityCommitment = genIdentityCommitment(identity)
     ```
 
 4. Perform an Ethereum transaction containing the identity commitment as data
    to the desired Mixer contract's `deposit` or `depositERC20` function.
 
 5. Download or load from disk a proving key and circuit file.
+
+    To load a circuit from disk, use:
+
+    ```ts
+    const cirDef = JSON.parse(fs.readFileSync(PATH_TO_CIRCUIT).toString())
+    ```
+
+    Likewise, to load a proving key from disk: use:
+
+    ```ts
+    const provingKey = fs.readFileSync(PATH_TO_PROVING_KEY)
+    ```
+
+    To download a circuit, use:
+
+    ```ts
+    const cirDef = await (await fetchWithoutCache(CIRCUIT_URL)).json() 
+    const circuit = genCircuit(cirDef)
+    ```
+
+    Where `fetchWithoutCache` is defined as such to instruct the user's web
+    browser to not cache the circuit, which may cause errors during witness
+    generation:
+
+    ```ts
+    const fetchWithoutCache = (
+        url: string,
+    ) => {
+        return fetch( url, { cache: "no-store" })
+    }
+    ```
+
+    To download a proving key, use:
+
+    ```ts
+    const provingKey = new Uint8Array(
+        await (await fetch(PROVING_KEY_URL)).arrayBuffer()
+    )
+    ```
 
 6. Retrieve a list of leaves from the Mixer contract using its `getLeaves()`
    view function.
@@ -59,30 +98,32 @@ To use the mixer, each client must be able to:
    The default tree depth is 20, and the leaves come from the Mixer contract's
    `getLeaves()` function.
 
-     ```ts
-        circuit = genCircuit(cirDef)
+    ```ts
+    const circuit = genCircuit(cirDef)
 
-        const signal = genMixerSignal(
-            recipientAddress,
-            broadcasterAddress,
-            feeAmt,
-        )
+    const signal = genMixerSignal(
+        recipientAddress,
+        broadcasterAddress,
+        feeAmt,
+    )
 
-        const result = await genWitness(
-            signal,
-            circuit,
-            identity,
-            LEAVES,
-            TREE_DEPTH,
-            externalNullifier,
-        )
+    const result = await genWitness(
+        signal,
+        circuit,
+        identity,
+        LEAVES,
+        TREE_DEPTH,
+        externalNullifier,
+    )
 
-        witness = result.witness
-     ```
+    witness = result.witness
+    ```
 
 9. Generate a *proof* using `w` and the proving key.
 
-    - Use `genProof(w, provingKey)`
+    ```ts
+    const proof = await genProof(witness, provingKey)
+    ```
 
 10. Optionally download a verification key and use it to verify the proof before
    sending it to the Mixer contract.

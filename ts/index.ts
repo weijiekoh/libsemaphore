@@ -379,4 +379,5 @@ export {
     unstringifyBigInts,
     serialiseIdentity,
     unSerialiseIdentity,
+    keccak256HexToBigInt,
 }

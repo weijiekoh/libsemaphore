@@ -32,6 +32,7 @@ To use the mixer, each client must be able to:
        stringifybigints,
        serialiseIdentity, // serializeIdentity also works
        unSerialiseIdentity, // unSerializeIdentity also works
+       genExternalNullifier,
    } from 'libsemaphore'
 
    const identity = genIdentity()`
@@ -123,6 +124,7 @@ To use the mixer, each client must be able to:
 
     ```ts
     const proof = await genProof(witness, provingKey)
+    const publicSignals = genPublicSignals(witness, circuit)
     ```
 
 10. Optionally download a verification key and use it to verify the proof before
@@ -141,7 +143,6 @@ To use the mixer, each client must be able to:
    - To verify the proof off-chain, use the `verifyProof()` function.
 
         ```ts
-        const publicSignals = genPublicSignals(witness, circuit)
         const isValid = verifyProof(verifyingKey, proof, publicSignals)
         ```
 
@@ -398,6 +399,12 @@ Encapsulates `snarkjs.stringifyBigInts()`. Makes it easy to convert `SnarkProof`
 **`unstringifyBigInts = (obj: any) => object`**
 
 Encapsulates `snarkjs.unstringifyBigInts()`. Makes it easy to convert JSON to `SnarkProof`s.
+
+**`genExternalNullifier = (plaintext: string) => string`**
+
+Each external nullifier must be at most 29 bytes large. This function
+keccak-256-hashes a given `plaintext`, takes the last 29 bytes, and pads it
+(from the start) with 0s, and returns the resulting hex string.
 
 ### Mixer-specific functions 
 

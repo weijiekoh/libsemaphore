@@ -231,7 +231,10 @@ const genWitness = async (
         identityCommitment,
     )
 
-    const signalHash = keccak256HexToBigInt(signal)
+    const signalAsHex = ethers.utils.hexlify(
+        ethers.utils.toUtf8Bytes(signal),
+    )
+    const signalHash = keccak256HexToBigInt(signalAsHex)
 
     const { signature, msg } = genSignedMsg(
         identity.keypair.privKey,
@@ -358,6 +361,28 @@ const formatForVerifierContract = (
     }
 }
 
+const cutOrExpandHexToBytes = (hexStr: string, bytes: number): string => {
+    const len = bytes * 2
+
+    const h = hexStr.slice(2, len + 2)
+    return '0x' + h.padStart(len, '0')
+}
+
+/*
+ * Each external nullifier must be at most 29 bytes large. This function
+ * keccak-256-hashes a given `plaintext`, takes the last 29 bytes, and pads it
+ * (from the start) with 0s, and returns the resulting hex string.
+ * @param plaintext The plaintext to hash
+ * @return plaintext The 0-padded 29-byte external nullifier
+ */
+const genExternalNullifier = (plaintext: string): string => {
+    const hashed = ethers.utils.solidityKeccak256(['string'], [plaintext])
+    return cutOrExpandHexToBytes(
+        '0x' + hashed.slice(8),
+        32,
+    )
+}
+
 export {
     parseVerifyingKeyJson,
     setupTree,
@@ -381,4 +406,5 @@ export {
     serialiseIdentity,
     unSerialiseIdentity,
     keccak256HexToBigInt,
+    genExternalNullifier,
 }

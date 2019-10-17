@@ -1,6 +1,6 @@
 {
   "name": "libsemaphore",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "A Semaphore and MicroMix client library",
   "main": "build/index.js",
   "scripts": {

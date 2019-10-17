@@ -96,4 +96,16 @@ describe('libsemaphore', function () {
 		expect(params.b[1]).toHaveLength(2)
 		expect(params.c).toHaveLength(2)
 	})
+
+    test('genExternalNullifier() should always return a 32-byte hex string whose true size is 29 bytes', () => {
+        const plaintext = 'test question'
+        const fullHash = ethers.utils.solidityKeccak256(['string'], [plaintext])
+        const hash = libsemaphore.genExternalNullifier(plaintext)
+
+        expect(fullHash)
+            .toEqual('0x51480a3453be7db7a786adbfc5d579a36a620c26f5a2e51d4c296d52892e38d6')
+        expect(hash)
+            .toEqual('0x0000003453be7db7a786adbfc5d579a36a620c26f5a2e51d4c296d52892e38d6')
+        expect(hash).toHaveLength(66)
+    })
 })

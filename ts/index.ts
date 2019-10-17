@@ -368,6 +368,7 @@ export {
     genMixerWitness,
     genProof,
     genPublicSignals,
+    genSignedMsg,
     genCircuit,
     genTree,
     verifyProof,

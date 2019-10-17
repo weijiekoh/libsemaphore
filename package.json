@@ -1,6 +1,6 @@
 {
   "name": "libsemaphore",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "A Semaphore and MicroMix client library",
   "main": "build/index.js",
   "scripts": {
@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/weijiekoh/libsemaphore#readme",
   "devDependencies": {
+    "@types/jest": "^24.0.18",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "jest": "^24.8.0",
@@ -28,7 +29,6 @@
     "typescript": "^3.5.3"
   },
   "dependencies": {
-    "@types/jest": "^24.0.18",
     "circomlib": "0.0.18",
     "ethers": "4.0.37",
     "semaphore-merkle-tree": "^1.0.7",

@@ -4,6 +4,37 @@ This repository contains the code necessary for third-party developers to
 easily integrate Semaphore, a zero-knowledge signalling gadget, or MicroMix, a
 mixer built upon Semaphore.
 
+## About Semaphore
+
+Semaphore is a set of Solidity contracts and zk-SNARK
+[`circom`](https://github.com/iden3/circom) circuits. It allows any Ethereum
+developer to build client application that offer a specific form of privacy:
+the ability to anonymously prove membership of a set of identities, while
+broadcasting an arbitary string (also known as a signal). Each identity can
+only broadcast once per *external nullifier*. Semaphore supports multiple
+external nullifiers.
+
+Each client application must use the above features of Semaphore in a unique
+way to achieve its privacy goals. MicroMix, for instance, is configured as
+such:
+
+| Signal | External nullifier |
+|-|-|
+| The hash of the recipient's address, relayer's address, and the relayer's fee | The MicroMix contract address |
+
+This allows anonymous withdrawals of funds (via a transaction relayer, who is
+rewarded with a fee), and prevents double-spending as there is only one
+external nullifier.
+
+An anonymous voting app would be configured differently:
+
+| Signal | External nullifier |
+|-|-|
+| The hash of the respondent's answer | The hash of the question |
+
+This allows any user to vote with an arbitary response (e.g. yes, no, or maybe)
+to any question. The user, however, can only vote once per question.
+
 ## Using libsemaphore to build a mixer
 
 We refer below to any third-party app, like a mixer user interface, as a
@@ -19,23 +50,12 @@ To use the mixer, each client must be able to:
 
    ```ts
    import {
-       genIdentity,
-       genIdentityCommitment,
-       genProof,
-       genCircuit,
-       genWitness,
-       genMixerSignal,
-       parseVerifyingKeyJson,
-       genPublicSignals,
-       formatForVerifierContract,
-       unstringifyBigInts
-       stringifybigints,
-       serialiseIdentity, // serializeIdentity also works
-       unSerialiseIdentity, // unSerializeIdentity also works
-       genExternalNullifier,
+       // funciton, type, or interface name here
    } from 'libsemaphore'
+   ```
 
-   const identity = genIdentity()`
+    ```ts
+   const identity: Identity = genIdentity()`
    ```
 
 3. Generate and store an identity commitment using the items above data.
@@ -182,6 +202,10 @@ function. See below for the required parameters.
 
 ### Types
 
+**`SnarkBigInt`**
+
+Encapsulates `snarkjs.bigInt`.
+
 **`EddsaPrivateKey`**
 
 An [EdDSA](https://tools.ietf.org/html/rfc8032) private key which should be 32
@@ -191,7 +215,7 @@ Encapsulates a [`Buffer`](https://nodejs.org/api/buffer.html).
 
 **`EddsaPublicKey`**
 
-An EdDSA public key. Encapsulates an array of `snarkjs.bigInt`s.
+An EdDSA public key. Encapsulates an array of `SnarkBigInt`s.
 
 **`SnarkProvingKey`**
 
@@ -205,11 +229,11 @@ A verifying key which when used with public inputs to a zk-SNARK and a
 
 **`SnarkWitness`**
 
-The secret inputs to a zk-SNARK. Encapsulates an array of `snarkjs.bigInt`s.
+The secret inputs to a zk-SNARK. Encapsulates an array of `SnarkBigInt`s.
 
 **`SnarkPublicSignals`**
 
-The public inputs to a zk-SNARK. Encapsulates an array of `snarkjs.bigInt`s.
+The public inputs to a zk-SNARK. Encapsulates an array of `SnarkBigInt`s.
 
 ### Interfaces
 
@@ -233,8 +257,8 @@ perform mixer withdrawals.
 ```ts
 interface Identity {
     keypair: EddsaKeyPair,
-    identityNullifier: snarkjs.bigInt,
-    identityTrapdoor: snarkjs.bigInt,
+    identityNullifier: SnarkBigInt,
+    identityTrapdoor: SnarkBigInt,
 }
 ```
 
@@ -244,9 +268,9 @@ Encapsulates zk-SNARK proof data required by `verifyProof()`.
 
 ```ts
 interface SnarkProof {
-    pi_a: snarkjs.bigInt[]
-    pi_b: snarkjs.bigInt[][]
-    pi_c: snarkjs.bigInt[]
+    pi_a: SnarkBigInt[]
+    pi_b: SnarkBigInt[][]
+    pi_c: SnarkBigInt[]
 }
 ```
 
@@ -283,7 +307,7 @@ Converts the `string` output of `serialiseIdentity()` to an `Identity`.
 
 You can also spell this function as `unSerializeIdentity`.
 
-**`genIdentityCommitment(identity: Identity): snarkjs.bigInt`**
+**`genIdentityCommitment(identity: Identity): SnarkBigInt`**
 
 Generates an identity commitment, which is the hash of the public key, the
 identity nullifier, and the identity trapdoor.
@@ -305,11 +329,11 @@ and public signals.
 
 Returns `false` otherwise.
 
-**`signMsg(privKey: EddsaPrivateKey, msg: snarkjs.bigInt): EdDSAMiMcSpongeSignature)`**
+**`signMsg(privKey: EddsaPrivateKey, msg: SnarkBigInt): EdDSAMiMcSpongeSignature)`**
 
 Encapsualtes `circomlib.eddsa.signMiMCSponge` to sign a message `msg` using private key `privKey`.
 
-**`verifySignature(msg: snarkjs.bigInt, signature: EdDSAMiMcSpongeSignature, pubKey: EddsaPublicKey)`: boolean**
+**`verifySignature(msg: SnarkBigInt, signature: EdDSAMiMcSpongeSignature, pubKey: EddsaPublicKey)`: boolean**
 
 Returns `true` if the cryptographic `signature` of the signed `msg` is from the
 private key associated with `pubKey`.
@@ -342,9 +366,9 @@ const genWitness = async (
     signal: string,
     circuit: SnarkCircuit,
     identity: Identity,
-    idCommitments: snarkjs.bigInt[] | BigInt[] | ethers.utils.BigNumber[],
+    idCommitments: SnarkBigInt[] | BigInt[] | ethers.utils.BigNumber[],
     treeDepth: number,
-    externalNullifier: snarkjs.bigInt,
+    externalNullifier: SnarkBigInt,
 )
 ```
 
@@ -415,4 +439,4 @@ Generates the signal that MicroMix needs. Returns a hex string.
 It returns the Keccak256 hash of the recipient's address, broadcaster's
 address, and the fee, in order to prevent frontrunning of `mix()` transactions.
 
-Pass the signal to `genWitness`
+Pass the signal to `genWitness`.

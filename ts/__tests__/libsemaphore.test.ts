@@ -16,17 +16,17 @@ const provingKeyPath = path.join(__dirname, '/../../semaphore/semaphorejs/build/
 const verifyingKeyPath = path.join(__dirname, '/../../semaphore/semaphorejs/build/verification_key.json')
 
 const cirDef = JSON.parse(fs.readFileSync(circuitPath).toString())
-const provingKey = fs.readFileSync(provingKeyPath)
-const verifyingKey = libsemaphore.parseVerifyingKeyJson(fs.readFileSync(verifyingKeyPath).toString())
+const provingKey: libsemaphore.SnarkProvingKey = fs.readFileSync(provingKeyPath)
+const verifyingKey: libsemaphore.SnarkVerifyingKey = libsemaphore.parseVerifyingKeyJson(fs.readFileSync(verifyingKeyPath).toString())
 
 const externalNullifier = '0'
 
 describe('libsemaphore', function () {
-    const identity = libsemaphore.genIdentity()
-    let witness
-    let circuit
-    let proof
-    let publicSignals
+    const identity: libsemaphore.Identity = libsemaphore.genIdentity()
+    let witness: libsemaphore.SnarkWitness
+    let circuit: libsemaphore.SnarkCircuit
+    let proof: libsemaphore.SnarkProof
+    let publicSignals: libsemaphore.SnarkPublicSignals
 
     it('genIdentity() should produce values of the correct length and type', async () => {
         assert.equal(identity.keypair.pubKey.length, 2)
@@ -36,8 +36,8 @@ describe('libsemaphore', function () {
     })
 
     it('serialiseIdentity() and unSerialiseIdentity() should work', async () => {
-        const serialisedId = libsemaphore.serialiseIdentity(identity)
-        const unSerialisedId = libsemaphore.unSerialiseIdentity(serialisedId)
+        const serialisedId: string = libsemaphore.serialiseIdentity(identity)
+        const unSerialisedId: libsemaphore.Identity = libsemaphore.unSerialiseIdentity(serialisedId)
 
         expect(unSerialisedId).toEqual(identity)
         expect(unSerialisedId.identityNullifier).toEqual(identity.identityNullifier)

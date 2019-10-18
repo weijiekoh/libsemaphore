@@ -53,9 +53,6 @@ const convertWitness = (witnessJson) => {
         offset: 0
     }
 
-
-    // writeUint32(h, witness.length)
-
     for (let i=0; i<witness.length; i++) {
         writeBigInt(h, witness[i]);
     }

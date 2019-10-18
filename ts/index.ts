@@ -11,13 +11,14 @@ const MimcSpongeHasher = hashers.MimcSpongeHasher
 const stringifyBigInts: (obj: object) => object = snarkjs.stringifyBigInts
 const unstringifyBigInts: (obj: object) => object = snarkjs.unstringifyBigInts
 
-export type EddsaPrivateKey = Buffer
-export type EddsaPublicKey = snarkjs.bigInt[]
-export type SnarkCircuit = snarkjs.Circuit
-export type SnarkProvingKey = Buffer
-export type SnarkVerifyingKey = Buffer
-export type SnarkWitness = Array<snarkjs.bigInt>
-export type SnarkPublicSignals = snarkjs.bigInt[]
+type SnarkBigInt = snarkjs.bigInt
+type EddsaPrivateKey = Buffer
+type EddsaPublicKey = SnarkBigInt[]
+type SnarkCircuit = snarkjs.Circuit
+type SnarkProvingKey = Buffer
+type SnarkVerifyingKey = Buffer
+type SnarkWitness = Array<SnarkBigInt>
+type SnarkPublicSignals = SnarkBigInt[]
 
 interface EddsaKeyPair {
     pubKey: EddsaPublicKey,
@@ -26,24 +27,24 @@ interface EddsaKeyPair {
 
 interface Identity {
     keypair: EddsaKeyPair,
-    identityNullifier: snarkjs.bigInt,
-    identityTrapdoor: snarkjs.bigInt,
+    identityNullifier: SnarkBigInt,
+    identityTrapdoor: SnarkBigInt,
 }
 
 interface SnarkProof {
-    pi_a: snarkjs.bigInt[]
-    pi_b: snarkjs.bigInt[][]
-    pi_c: snarkjs.bigInt[]
+    pi_a: SnarkBigInt[]
+    pi_b: SnarkBigInt[][]
+    pi_c: SnarkBigInt[]
 }
 
 interface EdDSAMiMcSpongeSignature {
-    R8: snarkjs.bigInt[],
-    S: snarkjs.bigInt,
+    R8: SnarkBigInt[],
+    S: SnarkBigInt,
 }
 
 const pedersenHash = (
-    ints: snarkjs.bigInt[],
-): snarkjs.bigInt => {
+    ints: SnarkBigInt[],
+): SnarkBigInt => {
 
     const p = circomlib.babyJub.unpackPoint(
         circomlib.pedersenHash.hash(
@@ -114,7 +115,7 @@ const unSerialiseIdentity = unSerializeIdentity
 
 const genIdentityCommitment = (
     identity: Identity,
-): snarkjs.bigInt => {
+): SnarkBigInt => {
 
     return pedersenHash([
         circomlib.babyJub.mulPointEscalar(identity.keypair.pubKey, 8)[0],
@@ -125,7 +126,7 @@ const genIdentityCommitment = (
 
 const signMsg = (
     privKey: EddsaPrivateKey,
-    msg: snarkjs.bigInt,
+    msg: SnarkBigInt,
 ): EdDSAMiMcSpongeSignature => {
 
     return eddsa.signMiMCSponge(privKey, msg)
@@ -133,8 +134,8 @@ const signMsg = (
 
 const genSignedMsg = (
     privKey: EddsaPrivateKey,
-    externalNullifier: snarkjs.bigInt,
-    signalHash: snarkjs.bigInt,
+    externalNullifier: SnarkBigInt,
+    signalHash: SnarkBigInt,
 ) => {
     const msg = circomlib.mimcsponge.multiHash([
         externalNullifier,
@@ -157,7 +158,7 @@ const genPathElementsAndIndex = async (tree, identityCommitment) => {
 }
 
 const verifySignature = (
-    msg: snarkjs.bigInt,
+    msg: SnarkBigInt,
     signature: EdDSAMiMcSpongeSignature,
     pubKey: EddsaPublicKey,
 ): boolean => {
@@ -167,7 +168,7 @@ const verifySignature = (
 
 const genTree = async (
     treeDepth: number,
-    leaves: snarkjs.bigInt[],
+    leaves: SnarkBigInt[],
 ) => {
     const tree = setupTree(treeDepth)
 
@@ -190,14 +191,14 @@ const genMixerSignal = (
 
 const keccak256HexToBigInt = (
     signal: string,
-): snarkjs.bigInt => {
+): SnarkBigInt => {
     const signalAsBuffer = Buffer.from(signal.slice(2), 'hex')
     const signalHashRaw = ethers.utils.solidityKeccak256(
         ['bytes'],
         [signalAsBuffer],
     )
     const signalHashRawAsBytes = Buffer.from(signalHashRaw.slice(2), 'hex');
-    const signalHash: snarkjs.bigInt = beBuff2int(signalHashRawAsBytes.slice(0, 31))
+    const signalHash: SnarkBigInt = beBuff2int(signalHashRawAsBytes.slice(0, 31))
 
     return signalHash
 }
@@ -210,12 +211,12 @@ const genWitness = async (
     signal: string,
     circuit: SnarkCircuit,
     identity: Identity,
-    idCommitments: snarkjs.bigInt[] | BigInt[] | ethers.utils.BigNumber[],
+    idCommitments: SnarkBigInt[] | BigInt[] | ethers.utils.BigNumber[],
     treeDepth: number,
-    externalNullifier: snarkjs.bigInt,
+    externalNullifier: SnarkBigInt,
 ) => {
     // convert idCommitments
-    const idCommitmentsAsBigInts: snarkjs.bigInt[] = []
+    const idCommitmentsAsBigInts: SnarkBigInt[] = []
     for (let idc of idCommitments) {
         idCommitmentsAsBigInts.push(snarkjs.bigInt(idc.toString()))
     }
@@ -273,12 +274,12 @@ const genWitness = async (
 const genMixerWitness = async (
     circuit: SnarkCircuit,
     identity: Identity,
-    idCommitments: snarkjs.bigInt[],
+    idCommitments: SnarkBigInt[],
     treeDepth: number,
     recipientAddress: string,
     relayerAddress: string,
-    feeAmt: Number | number | snarkjs.bigInt,
-    externalNullifier: snarkjs.bigInt,
+    feeAmt: Number | number | SnarkBigInt,
+    externalNullifier: SnarkBigInt,
 ) => {
 
     const signal = genMixerSignal(
@@ -384,6 +385,17 @@ const genExternalNullifier = (plaintext: string): string => {
 }
 
 export {
+    Identity,
+    EddsaKeyPair,
+    EddsaPrivateKey,
+    EddsaPublicKey,
+    SnarkCircuit,
+    SnarkProvingKey,
+    SnarkVerifyingKey ,
+    SnarkWitness,
+    SnarkPublicSignals,
+    SnarkProof,
+    SnarkBigInt,
     parseVerifyingKeyJson,
     setupTree,
     genPubKey,

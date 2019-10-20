@@ -293,7 +293,7 @@ values.
 
 Converts an `Identity` into a JSON string which looks like this:
 
-```json
+```text
 ["e82cc2b8654705e427df423c6300307a873a2e637028fab3163cf95b18bb172e","a02e517dfb3a4184adaa951d02bfe0fe092d1ee34438721d798db75b8db083","15c6540bf7bddb0616984fccda7e954a0fb5ea4679ac686509dc4bd7ba9c3b"]
 ```
 
@@ -440,3 +440,4 @@ It returns the Keccak256 hash of the recipient's address, broadcaster's
 address, and the fee, in order to prevent frontrunning of `mix()` transactions.
 
 Pass the signal to `genWitness`.
+

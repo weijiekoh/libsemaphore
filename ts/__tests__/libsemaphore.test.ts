@@ -47,7 +47,7 @@ describe('libsemaphore', function () {
     })
 
 	it('identityCommitment() should produce a value of the correct length and type', async () => {
-		const idc = libsemaphore.genIdentityCommitment(identity)
+		const idc: libsemaphore.SnarkBigInt = libsemaphore.genIdentityCommitment(identity)
 		assert.equal(typeof idc, 'bigint')
 		assert.isBelow(idc.toString(16).length, 65)
 		// This may fail in very rare occasions; just run the test again

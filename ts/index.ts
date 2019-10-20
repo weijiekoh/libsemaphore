@@ -215,6 +215,57 @@ const genWitness = async (
     treeDepth: number,
     externalNullifier: SnarkBigInt,
 ) => {
+    return _genWitness(
+        signal,
+        circuit,
+        identity,
+        idCommitments,
+        treeDepth,
+        externalNullifier,
+        (signal: string) => {
+            return ethers.utils.hexlify(
+                ethers.utils.toUtf8Bytes(signal),
+            )
+        },
+    )
+}
+
+const genMixerWitness = async (
+    circuit: SnarkCircuit,
+    identity: Identity,
+    idCommitments: SnarkBigInt[],
+    treeDepth: number,
+    recipientAddress: string,
+    relayerAddress: string,
+    feeAmt: Number | number | SnarkBigInt,
+    externalNullifier: SnarkBigInt,
+) => {
+
+    const signal = genMixerSignal(
+        recipientAddress, relayerAddress, feeAmt,
+    )
+
+    return _genWitness(
+        signal,
+        circuit,
+        identity,
+        idCommitments,
+        treeDepth,
+        externalNullifier,
+        (x) => x,
+    )
+}
+
+
+const _genWitness = async (
+    signal: string,
+    circuit: SnarkCircuit,
+    identity: Identity,
+    idCommitments: SnarkBigInt[] | BigInt[] | ethers.utils.BigNumber[],
+    treeDepth: number,
+    externalNullifier: SnarkBigInt,
+    transformSignalToHex: (x: string) => string,
+) => {
     // convert idCommitments
     const idCommitmentsAsBigInts: SnarkBigInt[] = []
     for (let idc of idCommitments) {
@@ -232,10 +283,7 @@ const genWitness = async (
         identityCommitment,
     )
 
-    const signalAsHex = ethers.utils.hexlify(
-        ethers.utils.toUtf8Bytes(signal),
-    )
-    const signalHash = keccak256HexToBigInt(signalAsHex)
+    const signalHash = keccak256HexToBigInt(transformSignalToHex(signal))
 
     const { signature, msg } = genSignedMsg(
         identity.keypair.privKey,
@@ -269,31 +317,6 @@ const genWitness = async (
         identityPathIndex,
         identityPathElements,
     }
-}
-
-const genMixerWitness = async (
-    circuit: SnarkCircuit,
-    identity: Identity,
-    idCommitments: SnarkBigInt[],
-    treeDepth: number,
-    recipientAddress: string,
-    relayerAddress: string,
-    feeAmt: Number | number | SnarkBigInt,
-    externalNullifier: SnarkBigInt,
-) => {
-
-    const signal = genMixerSignal(
-        recipientAddress, relayerAddress, feeAmt,
-    )
-
-    return genWitness(
-        signal,
-        circuit,
-        identity,
-        idCommitments,
-        treeDepth,
-        externalNullifier
-    )
 }
 
 const setupTree = (

@@ -357,7 +357,7 @@ Returns a `new snarkjs.Circuit(circuitDefinition)`. The `circuitDefinition`
 object should be the `JSON.parse`d result of the `circom` command which
 converts a `.circom` file to a `.json` file.
 
-**`async genWitness(...): SnarkWitness`**
+**`async genWitness(...)`**
 
 This function has the following signature:
 
@@ -432,12 +432,30 @@ keccak-256-hashes a given `plaintext`, takes the last 29 bytes, and pads it
 
 ### Mixer-specific functions 
 
-**`genMixerSignal(recipientAddress: string, broadcasterAddress: string, feeAmt: Number | snarkjs.utils.BigNumber): string`**
+**`async genMixerWitness(...)`**
 
-Generates the signal that MicroMix needs. Returns a hex string.
+This function has the following signature:
 
-It returns the Keccak256 hash of the recipient's address, broadcaster's
-address, and the fee, in order to prevent frontrunning of `mix()` transactions.
+```ts:
+const genMixerWitness = (
+    circuit: SnarkCircuit,
+    identity: Identity,
+    idCommitments: SnarkBigInt[],
+    treeDepth: number,
+    recipientAddress: string,
+    relayerAddress: string,
+    feeAmt: Number | number | SnarkBigInt,
+    externalNullifier: SnarkBigInt,
+)
+```
 
-Pass the signal to `genWitness`.
-
+- `circuit` is the output of `genCircuit()`.
+- `identity` is the `Identity` whose identity commitment you want to prove is
+  in the set of registered identities.
+- `idCommitments` is an array of registered identity commmitments; i.e. the
+  leaves of the tree.
+- `treeDepth` is the number of levels which the Merkle tree used has
+- `recipientAddress` is the address which should receive the funds
+- `relayerAddress` is the address of the relayer which will receive the fee
+- `feeAmt` is the amount of ETH (in wei) or tokens deposited
+- `externalNullifier` is the current external nullifier

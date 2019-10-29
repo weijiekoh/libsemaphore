@@ -207,7 +207,7 @@ const genCircuit = (circuitDefinition: any) => {
     return new snarkjs.Circuit(circuitDefinition)
 }
 
-const genWitness = async (
+const genWitness = (
     signal: string,
     circuit: SnarkCircuit,
     identity: Identity,
@@ -230,7 +230,7 @@ const genWitness = async (
     )
 }
 
-const genMixerWitness = async (
+const genMixerWitness = (
     circuit: SnarkCircuit,
     identity: Identity,
     idCommitments: SnarkBigInt[],

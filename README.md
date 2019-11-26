@@ -50,7 +50,7 @@ To use the mixer, each client must be able to:
 
    ```ts
    import {
-       // funciton, type, or interface name here
+       // function, type, or interface name here
    } from 'libsemaphore'
    ```
 
@@ -184,7 +184,7 @@ To use the mixer, each client must be able to:
             recipientAddress,
             fee,
         },
-        relayerAddress,
+        forwarderAddress,
     )
     ```
 
@@ -443,7 +443,7 @@ const genMixerWitness = (
     idCommitments: SnarkBigInt[],
     treeDepth: number,
     recipientAddress: string,
-    relayerAddress: string,
+    forwarderAddress: string,
     feeAmt: Number | number | SnarkBigInt,
     externalNullifier: SnarkBigInt,
 )
@@ -456,6 +456,6 @@ const genMixerWitness = (
   leaves of the tree.
 - `treeDepth` is the number of levels which the Merkle tree used has
 - `recipientAddress` is the address which should receive the funds
-- `relayerAddress` is the address of the relayer which will receive the fee
+- `forwarderAddress:` is the address of the contract which will forward the transaction. This could be a [Surrogeth](https://github.com/lsankar4033/surrogeth) RelayerForwarder.
 - `feeAmt` is the amount of ETH (in wei) or tokens deposited
 - `externalNullifier` is the current external nullifier

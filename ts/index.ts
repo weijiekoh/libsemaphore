@@ -180,12 +180,12 @@ const genTree = async (
 }
 const genMixerSignal = (
     recipientAddress: string,
-    broadcasterAddress: string,
+    forwarderAddress: string,
     feeAmt: Number | snarkjs.utils.BigNumber,
 ): string => {
     return ethers.utils.solidityKeccak256(
         ['address', 'address', 'uint256'],
-        [recipientAddress, broadcasterAddress, feeAmt.toString()],
+        [recipientAddress, forwarderAddress, feeAmt.toString()],
     )
 }
 
@@ -236,13 +236,13 @@ const genMixerWitness = (
     idCommitments: SnarkBigInt[],
     treeDepth: number,
     recipientAddress: string,
-    relayerAddress: string,
+    forwarderAddress: string,
     feeAmt: Number | number | SnarkBigInt,
     externalNullifier: SnarkBigInt,
 ) => {
 
     const signal = genMixerSignal(
-        recipientAddress, relayerAddress, feeAmt,
+        recipientAddress, forwarderAddress, feeAmt,
     )
 
     return _genWitness(

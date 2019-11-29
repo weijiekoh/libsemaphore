@@ -331,7 +331,7 @@ const setupTree = (
         storage,
         hasher,
         levels,
-        0,
+        ethers.utils.solidityKeccak256(['uint256'], [0]),
     )
 }
 

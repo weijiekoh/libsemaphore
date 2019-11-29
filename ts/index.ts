@@ -20,6 +20,18 @@ type SnarkVerifyingKey = Buffer
 type SnarkWitness = Array<SnarkBigInt>
 type SnarkPublicSignals = SnarkBigInt[]
 
+interface WitnessData {
+    witness: any,
+    signal: string,
+    signalHash: SnarkBigInt,
+    signature: EdDSAMiMcSpongeSignature,
+    msg: SnarkBigInt,
+    tree: tree.MerkleTree,
+    identityPath: any,
+    identityPathIndex: any,
+    identityPathElements: any,
+}
+
 interface EddsaKeyPair {
     pubKey: EddsaPublicKey,
     privKey: EddsaPrivateKey,
@@ -203,6 +215,8 @@ const keccak256HexToBigInt = (
     return signalHash
 }
 
+const genSignalHash = keccak256HexToBigInt
+
 const genCircuit = (circuitDefinition: any) => {
     return new snarkjs.Circuit(circuitDefinition)
 }
@@ -214,7 +228,8 @@ const genWitness = (
     idCommitments: SnarkBigInt[] | BigInt[] | ethers.utils.BigNumber[],
     treeDepth: number,
     externalNullifier: SnarkBigInt,
-) => {
+): Promise<WitnessData> => {
+
     return _genWitness(
         signal,
         circuit,
@@ -239,7 +254,7 @@ const genMixerWitness = (
     forwarderAddress: string,
     feeAmt: Number | number | SnarkBigInt,
     externalNullifier: SnarkBigInt,
-) => {
+): Promise<WitnessData> => {
 
     const signal = genMixerSignal(
         recipientAddress, forwarderAddress, feeAmt,
@@ -256,7 +271,6 @@ const genMixerWitness = (
     )
 }
 
-
 const _genWitness = async (
     signal: string,
     circuit: SnarkCircuit,
@@ -265,7 +279,8 @@ const _genWitness = async (
     treeDepth: number,
     externalNullifier: SnarkBigInt,
     transformSignalToHex: (x: string) => string,
-) => {
+): Promise<WitnessData> => {
+
     // convert idCommitments
     const idCommitmentsAsBigInts: SnarkBigInt[] = []
     for (let idc of idCommitments) {
@@ -407,6 +422,26 @@ const genExternalNullifier = (plaintext: string): string => {
     )
 }
 
+const genBroadcastSignalParams = (
+    WitnessData: WitnessData,
+    proof: SnarkProof,
+    publicSignals: SnarkPublicSignals,
+) => {
+    const formatted = formatForVerifierContract(proof, publicSignals)
+
+    return {
+        signal: ethers.utils.toUtf8Bytes(WitnessData.signal),
+        a: formatted.a,
+        b: formatted.b,
+        c: formatted.c,
+        root: formatted.input[0],
+        nullifiersHash: formatted.input[1],
+        // The signal hash (formatted.input[2]) isn't passed to broadcastSignal
+        // as the contract will generate (and then verify) it
+        externalNullifier: formatted.input[3],
+    }
+}
+
 export {
     Identity,
     EddsaKeyPair,
@@ -419,6 +454,7 @@ export {
     SnarkPublicSignals,
     SnarkProof,
     SnarkBigInt,
+    WitnessData,
     parseVerifyingKeyJson,
     setupTree,
     genPubKey,
@@ -440,6 +476,7 @@ export {
     unstringifyBigInts,
     serialiseIdentity,
     unSerialiseIdentity,
-    keccak256HexToBigInt,
     genExternalNullifier,
+    genBroadcastSignalParams,
+    genSignalHash,
 }

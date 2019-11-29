@@ -215,7 +215,7 @@ const keccak256HexToBigInt = (
     return signalHash
 }
 
-const genSignalHash = keccak256HexToBigInt
+const genSignalHash = (x) => keccak256HexToBigInt(ethers.utils.hexlify(x))
 
 const genCircuit = (circuitDefinition: any) => {
     return new snarkjs.Circuit(circuitDefinition)

@@ -346,7 +346,7 @@ const setupTree = (
         storage,
         hasher,
         levels,
-        ethers.utils.solidityKeccak256(['bytes'], ['Semaphore']),
+        ethers.utils.solidityKeccak256(['bytes'], [ethers.utils.toUtf8Bytes('Semaphore')]),
     )
 }
 

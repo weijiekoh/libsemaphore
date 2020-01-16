@@ -423,17 +423,20 @@ const genExternalNullifier = (plaintext: string): string => {
 }
 
 const genBroadcastSignalParams = (
-    WitnessData: WitnessData,
+    witnessData: WitnessData,
     proof: SnarkProof,
     publicSignals: SnarkPublicSignals,
 ) => {
     const formatted = formatForVerifierContract(proof, publicSignals)
 
     return {
-        signal: ethers.utils.toUtf8Bytes(WitnessData.signal),
-        a: formatted.a,
-        b: formatted.b,
-        c: formatted.c,
+        signal: ethers.utils.toUtf8Bytes(witnessData.signal),
+        proof: [
+            ...formatted.a,
+            ...formatted.b[0],
+            ...formatted.b[1],
+            ...formatted.c,
+        ],
         root: formatted.input[0],
         nullifiersHash: formatted.input[1],
         // The signal hash (formatted.input[2]) isn't passed to broadcastSignal

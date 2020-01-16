@@ -24,6 +24,7 @@ const externalNullifier = '0'
 describe('libsemaphore', function () {
     const identity: libsemaphore.Identity = libsemaphore.genIdentity()
     let witness: libsemaphore.SnarkWitness
+    let witnessData: libsemaphore.WitnessData
     let circuit: libsemaphore.SnarkCircuit
     let proof: libsemaphore.SnarkProof
     let publicSignals: libsemaphore.SnarkPublicSignals
@@ -67,7 +68,7 @@ describe('libsemaphore', function () {
 
 		circuit = libsemaphore.genCircuit(cirDef)
 
-		const result = await libsemaphore.genWitness(
+		witnessData = await libsemaphore.genWitness(
 			'signal0',
 			circuit,
 			identity,
@@ -76,7 +77,7 @@ describe('libsemaphore', function () {
 			externalNullifier,
 		)
 
-		witness = result.witness
+		witness = witnessData.witness
 
 		expect(circuit.checkWitness(witness)).toBeTruthy()
 	})
@@ -96,6 +97,15 @@ describe('libsemaphore', function () {
 		expect(params.b[1]).toHaveLength(2)
 		expect(params.c).toHaveLength(2)
 	})
+
+	it('genBroadcastSignalParams() should produce the correct params', async () => {
+        const params = libsemaphore.genBroadcastSignalParams(witnessData, proof, publicSignals)
+		expect(params).toHaveProperty('signal')
+		expect(params.proof).toHaveLength(8)
+		expect(params).toHaveProperty('root')
+		expect(params).toHaveProperty('nullifiersHash')
+		expect(params).toHaveProperty('externalNullifier')
+    })
 
     test('genExternalNullifier() should always return a 32-byte hex string whose true size is 29 bytes', () => {
         const plaintext = 'test question'

@@ -7,7 +7,7 @@ module.exports = {
         "/build/",
         "/node_modules/",
     ],
-    testRegex: '/__tests__/.*\\.test\\.ts$',
+    // testRegex: '/__tests__/.*\\.test\\.ts$',
     moduleFileExtensions: [
         'ts',
         'tsx',

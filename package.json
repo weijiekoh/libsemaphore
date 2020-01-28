@@ -7,7 +7,7 @@
     "watch": "tsc --watch",
     "build": "tsc",
     "prepare": "npm run build",
-    "test": "./scripts/downloadSnarks.sh && jest",
+    "test": "./scripts/downloadSnarks.sh && jest --force-exit",
     "test-debug": "./scripts/downloadSnarks.sh && NODE_ENV=local-dev node --inspect-brk ./node_modules/.bin/jest --testPathPattern=__tests__/"
   },
   "repository": {
@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "circomlib": "0.0.19",
-    "ethers": "4.0.37",
+    "ethers": "4.0.43",
     "semaphore-merkle-tree": "^1.0.7",
     "websnark": "0.0.5",
     "snarkjs": "0.1.20"

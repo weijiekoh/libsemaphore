@@ -182,8 +182,15 @@ const verifySignature = (
 const genTree = async (
     treeDepth: number,
     leaves: SnarkBigInt[],
+    poseidon: boolean,
 ) => {
-    const tree = setupTree(treeDepth)
+    let tree
+
+    if (poseidon) {
+        tree = setupPoseidonTree(treeDepth)
+    } else {
+        tree = setupTree(treeDepth)
+    }
 
     for (let i=0; i<leaves.length; i++) {
         await tree.update(i, leaves[i].toString())
@@ -280,6 +287,7 @@ const _genWitness = async (
     treeDepth: number,
     externalNullifier: SnarkBigInt,
     transformSignalToHex: (x: string) => string,
+    poseidon: boolean = false,
 ): Promise<WitnessData> => {
 
     // convert idCommitments
@@ -290,7 +298,7 @@ const _genWitness = async (
 
     const identityCommitment = genIdentityCommitment(identity)
     const index = idCommitmentsAsBigInts.indexOf(identityCommitment)
-    const tree = await genTree(treeDepth, idCommitments)
+    const tree = await genTree(treeDepth, idCommitments, poseidon)
 
     const identityPath = await tree.path(index)
 

@@ -236,6 +236,7 @@ const genWitness = (
     idCommitments: SnarkBigInt[] | BigInt[] | ethers.utils.BigNumber[],
     treeDepth: number,
     externalNullifier: SnarkBigInt,
+    poseidon: boolean = false,
 ): Promise<WitnessData> => {
 
     return _genWitness(
@@ -250,6 +251,7 @@ const genWitness = (
                 ethers.utils.toUtf8Bytes(signal),
             )
         },
+        poseidon,
     )
 }
 
@@ -276,6 +278,7 @@ const genMixerWitness = (
         treeDepth,
         externalNullifier,
         (x) => x,
+        true,
     )
 }
 
@@ -287,7 +290,7 @@ const _genWitness = async (
     treeDepth: number,
     externalNullifier: SnarkBigInt,
     transformSignalToHex: (x: string) => string,
-    poseidon: boolean = false,
+    poseidon: boolean,
 ): Promise<WitnessData> => {
 
     // convert idCommitments

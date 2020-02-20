@@ -8,6 +8,7 @@ const eddsa = circomlib.eddsa
 const MemStorage = storage.MemStorage
 const MerkleTree = tree.MerkleTree
 const MimcSpongeHasher = hashers.MimcSpongeHasher
+const PoseidonHasher = hashers.PoseidonHasher
 const stringifyBigInts: (obj: object) => object = snarkjs.stringifyBigInts
 const unstringifyBigInts: (obj: object) => object = snarkjs.unstringifyBigInts
 
@@ -334,6 +335,22 @@ const _genWitness = async (
     }
 }
 
+const setupPoseidonTree = (
+    levels: number,
+    prefix: string = 'semaphore',
+): tree.MerkleTree => {
+    const storage = new MemStorage()
+    const hasher = new PoseidonHasher()
+
+    return new MerkleTree(
+        prefix,
+        storage,
+        hasher,
+        levels,
+        ethers.utils.solidityKeccak256(['bytes'], [ethers.utils.toUtf8Bytes('Semaphore')]),
+    )
+}
+
 const setupTree = (
     levels: number,
     prefix: string = 'semaphore',
@@ -482,4 +499,5 @@ export {
     genExternalNullifier,
     genBroadcastSignalParams,
     genSignalHash,
+    setupPoseidonTree,
 }

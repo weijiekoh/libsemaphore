@@ -1,6 +1,6 @@
 {
   "name": "libsemaphore",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "A Semaphore and MicroMix client library",
   "main": "build/index.js",
   "scripts": {
@@ -31,7 +31,7 @@
   "dependencies": {
     "circomlib": "0.0.19",
     "ethers": "^4.0.37",
-    "semaphore-merkle-tree": "^1.0.9",
+    "semaphore-merkle-tree": "^1.0.10",
     "snarkjs": "0.1.20",
     "websnark": "0.0.5"
   }

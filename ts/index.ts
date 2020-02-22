@@ -4,7 +4,6 @@ import * as crypto from 'crypto'
 import * as ethers from 'ethers'
 import { convertWitness, prove, beBuff2int } from './utils' 
 import { storage, hashers, tree } from 'semaphore-merkle-tree'
-const eddsa = circomlib.eddsa
 const MemStorage = storage.MemStorage
 const MerkleTree = tree.MerkleTree
 const MimcSpongeHasher = hashers.MimcSpongeHasher
@@ -25,7 +24,7 @@ interface WitnessData {
     witness: any,
     signal: string,
     signalHash: SnarkBigInt,
-    signature: EdDSAMiMcSpongeSignature,
+    signature: EdDSASignature,
     msg: SnarkBigInt,
     tree: tree.MerkleTree,
     identityPath: any,
@@ -50,7 +49,7 @@ interface SnarkProof {
     pi_c: SnarkBigInt[]
 }
 
-interface EdDSAMiMcSpongeSignature {
+interface EdDSASignature {
     R8: SnarkBigInt[],
     S: SnarkBigInt,
 }
@@ -75,7 +74,7 @@ const genRandomBuffer = (numBytes: number = 32): Buffer => {
 }
 
 const genPubKey = (privKey: EddsaPrivateKey): EddsaPublicKey => {
-    const pubKey = eddsa.prv2pub(privKey)
+    const pubKey = circomlib.eddsa.prv2pub(privKey)
 
     return pubKey
 }
@@ -140,24 +139,38 @@ const genIdentityCommitment = (
 const signMsg = (
     privKey: EddsaPrivateKey,
     msg: SnarkBigInt,
-): EdDSAMiMcSpongeSignature => {
+    poseidon: boolean = false,
+): EdDSASignature => {
 
-    return eddsa.signMiMCSponge(privKey, msg)
+    if (poseidon) {
+        return circomlib.eddsa.signPoseidon(privKey, msg)
+    } else {
+        return circomlib.eddsa.signMiMCSponge(privKey, msg)
+    }
 }
 
 const genSignedMsg = (
     privKey: EddsaPrivateKey,
     externalNullifier: SnarkBigInt,
     signalHash: SnarkBigInt,
+    poseidon: boolean = false,
 ) => {
-    const msg = circomlib.mimcsponge.multiHash([
-        externalNullifier,
-        signalHash
-    ])
+    let msg
+    if (poseidon) {
+        msg = circomlib.poseidon.createHash(6, 8, 57, 'poseidon')([
+            externalNullifier,
+            signalHash,
+        ])
+    } else {
+        msg = circomlib.mimcsponge.multiHash([
+            externalNullifier,
+            signalHash,
+        ])
+    }
 
     return {
         msg,
-        signature: signMsg(privKey, msg),
+        signature: signMsg(privKey, msg, poseidon),
     }
 }
 
@@ -172,11 +185,11 @@ const genPathElementsAndIndex = async (tree, identityCommitment) => {
 
 const verifySignature = (
     msg: SnarkBigInt,
-    signature: EdDSAMiMcSpongeSignature,
+    signature: EdDSASignature,
     pubKey: EddsaPublicKey,
 ): boolean => {
 
-    return eddsa.verifyMiMCSponge(msg, signature, pubKey)
+    return circomlib.eddsa.verifyMiMCSponge(msg, signature, pubKey)
 }
 
 const genTree = async (
@@ -316,6 +329,7 @@ const _genWitness = async (
         identity.keypair.privKey,
         externalNullifier,
         signalHash, 
+        poseidon,
     )
    
     const witness = circuit.calculateWitness({

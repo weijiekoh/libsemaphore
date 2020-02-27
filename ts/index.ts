@@ -277,6 +277,7 @@ const genMixerWitness = (
     forwarderAddress: string,
     feeAmt: Number | number | SnarkBigInt,
     externalNullifier: SnarkBigInt,
+    poseidon: boolean = false,
 ): Promise<WitnessData> => {
 
     const signal = genMixerSignal(
@@ -291,7 +292,7 @@ const genMixerWitness = (
         treeDepth,
         externalNullifier,
         (x) => x,
-        true,
+        poseidon,
     )
 }
 

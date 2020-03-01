@@ -54,8 +54,8 @@ To use the mixer, each client must be able to:
    } from 'libsemaphore'
    ```
 
-    ```ts
-   const identity: Identity = genIdentity()`
+   ```ts
+   const identity: Identity = genIdentity()
    ```
 
 3. Generate and store an identity commitment using the items above data.

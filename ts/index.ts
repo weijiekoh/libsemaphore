@@ -7,7 +7,6 @@ import { storage, hashers, tree } from 'semaphore-merkle-tree'
 const MemStorage = storage.MemStorage
 const MerkleTree = tree.MerkleTree
 const MimcSpongeHasher = hashers.MimcSpongeHasher
-const PoseidonHasher = hashers.PoseidonHasher
 const stringifyBigInts: (obj: object) => object = snarkjs.stringifyBigInts
 const unstringifyBigInts: (obj: object) => object = snarkjs.unstringifyBigInts
 
@@ -139,38 +138,24 @@ const genIdentityCommitment = (
 const signMsg = (
     privKey: EddsaPrivateKey,
     msg: SnarkBigInt,
-    poseidon: boolean = false,
 ): EdDSASignature => {
 
-    if (poseidon) {
-        return circomlib.eddsa.signPoseidon(privKey, msg)
-    } else {
-        return circomlib.eddsa.signMiMCSponge(privKey, msg)
-    }
+    return circomlib.eddsa.signMiMCSponge(privKey, msg)
 }
 
 const genSignedMsg = (
     privKey: EddsaPrivateKey,
     externalNullifier: SnarkBigInt,
     signalHash: SnarkBigInt,
-    poseidon: boolean = false,
 ) => {
-    let msg
-    if (poseidon) {
-        msg = circomlib.poseidon.createHash(6, 8, 57, 'poseidon')([
-            externalNullifier,
-            signalHash,
-        ])
-    } else {
-        msg = circomlib.mimcsponge.multiHash([
-            externalNullifier,
-            signalHash,
-        ])
-    }
+    const msg = circomlib.mimcsponge.multiHash([
+        externalNullifier,
+        signalHash,
+    ])
 
     return {
         msg,
-        signature: signMsg(privKey, msg, poseidon),
+        signature: signMsg(privKey, msg),
     }
 }
 
@@ -195,15 +180,9 @@ const verifySignature = (
 const genTree = async (
     treeDepth: number,
     leaves: SnarkBigInt[],
-    poseidon: boolean,
 ) => {
-    let tree
 
-    if (poseidon) {
-        tree = setupPoseidonTree(treeDepth)
-    } else {
-        tree = setupTree(treeDepth)
-    }
+    const tree = setupTree(treeDepth)
 
     for (let i=0; i<leaves.length; i++) {
         await tree.update(i, leaves[i].toString())
@@ -249,7 +228,6 @@ const genWitness = (
     idCommitments: SnarkBigInt[] | BigInt[] | ethers.utils.BigNumber[],
     treeDepth: number,
     externalNullifier: SnarkBigInt,
-    poseidon: boolean = false,
 ): Promise<WitnessData> => {
 
     return _genWitness(
@@ -264,7 +242,6 @@ const genWitness = (
                 ethers.utils.toUtf8Bytes(signal),
             )
         },
-        poseidon,
     )
 }
 
@@ -277,7 +254,6 @@ const genMixerWitness = (
     forwarderAddress: string,
     feeAmt: Number | number | SnarkBigInt,
     externalNullifier: SnarkBigInt,
-    poseidon: boolean = false,
 ): Promise<WitnessData> => {
 
     const signal = genMixerSignal(
@@ -292,7 +268,6 @@ const genMixerWitness = (
         treeDepth,
         externalNullifier,
         (x) => x,
-        poseidon,
     )
 }
 
@@ -304,7 +279,6 @@ const _genWitness = async (
     treeDepth: number,
     externalNullifier: SnarkBigInt,
     transformSignalToHex: (x: string) => string,
-    poseidon: boolean,
 ): Promise<WitnessData> => {
 
     // convert idCommitments
@@ -315,7 +289,7 @@ const _genWitness = async (
 
     const identityCommitment = genIdentityCommitment(identity)
     const index = idCommitmentsAsBigInts.indexOf(identityCommitment)
-    const tree = await genTree(treeDepth, idCommitments, poseidon)
+    const tree = await genTree(treeDepth, idCommitments)
 
     const identityPath = await tree.path(index)
 
@@ -330,7 +304,6 @@ const _genWitness = async (
         identity.keypair.privKey,
         externalNullifier,
         signalHash, 
-        poseidon,
     )
    
     const witness = circuit.calculateWitness({
@@ -359,22 +332,6 @@ const _genWitness = async (
         identityPathIndex,
         identityPathElements,
     }
-}
-
-const setupPoseidonTree = (
-    levels: number,
-    prefix: string = 'semaphore',
-): tree.MerkleTree => {
-    const storage = new MemStorage()
-    const hasher = new PoseidonHasher()
-
-    return new MerkleTree(
-        prefix,
-        storage,
-        hasher,
-        levels,
-        ethers.utils.solidityKeccak256(['bytes'], [ethers.utils.toUtf8Bytes('Semaphore')]),
-    )
 }
 
 const setupTree = (
@@ -525,5 +482,4 @@ export {
     genExternalNullifier,
     genBroadcastSignalParams,
     genSignalHash,
-    setupPoseidonTree,
 }

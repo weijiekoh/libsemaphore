@@ -33,6 +33,6 @@
     "ethers": "^4.0.37",
     "semaphore-merkle-tree": "^1.0.11",
     "snarkjs": "0.1.20",
-    "websnark": "0.0.5"
+    "websnark": "https://github.com/kobigurk/websnark.git#1fea8e0ef042d0e68e88e271fb7e79949a884a51"
   }
 }

@@ -29,7 +29,7 @@
     "typescript": "^3.7.5"
   },
   "dependencies": {
-    "circomlib": "0.0.21",
+    "circomlib": "git+https://github.com/kobigurk/circomlib.git#4284dc1ef984a204db08864f5da530c97f9376ef",
     "ethers": "^4.0.37",
     "semaphore-merkle-tree": "^1.0.11",
     "snarkjs": "0.1.20",

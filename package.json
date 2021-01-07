@@ -3,6 +3,7 @@
   "version": "1.0.15",
   "description": "A Semaphore and MicroMix client library",
   "main": "build/index.js",
+  "types": "ts/index.ts",
   "scripts": {
     "watch": "tsc --watch",
     "build": "tsc",
